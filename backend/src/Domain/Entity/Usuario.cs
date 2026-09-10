@@ -15,7 +15,7 @@
         // Navegaciones
         public Billetera? Billetera { get; set; }
 
-        public ICollection<Subasta> SubastasPublicadas { get; set; } = new List<Subasta>();
+        public ICollection<Subasta> Subastas { get; set; } = new List<Subasta>();
 
         public ICollection<Puja> Pujas { get; set; } = new List<Puja>();
 
