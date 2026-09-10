@@ -8,6 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.34.0.3385">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -18,8 +22,9 @@
     <Folder Include="Bootstrap\" />
     <Folder Include="Mappers\" />
     <Folder Include="Enum\" />
-    <Folder Include="Ports\" />
-    <Folder Include="UseCases\Subastas\" />
+    <Folder Include="UseCases\Subasta\Query\Listar\" />
+    <Folder Include="UseCases\Usuario\Command\" />
+    <Folder Include="UseCases\Usuario\Query\" />
   </ItemGroup>
 
 </Project>
