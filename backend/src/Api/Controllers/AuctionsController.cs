@@ -10,11 +10,11 @@ namespace Api.Controllers
     public sealed class AuctionsController : ControllerBase
     {
         private readonly ILogger<AuctionsController> _logger;
-        private readonly IMediator _mediator;
+        private readonly ISender _Sender;
 
-        public AuctionsController(IMediator mediator, ILogger<AuctionsController> logger)
+        public AuctionsController(ISender sender, ILogger<AuctionsController> logger)
         {
-            _mediator = mediator;
+            _Sender = sender;
             _logger = logger;
         }
 
@@ -43,7 +43,7 @@ namespace Api.Controllers
         {
             try
             {
-                var result = await _mediator.Send(
+                var result = await _Sender.Send(
                     command,
                     cancellationToken);
 

@@ -1,8 +1,9 @@
-﻿using Domain.Enum;
+﻿using Domain.Common;
+using Domain.Enum;
 
 namespace Domain.Entity
 {
-    public class TransaccionLedger
+    public class TransaccionLedger : IEntity
     {
         public int Id { get; set; }
 

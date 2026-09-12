@@ -1,6 +1,7 @@
-﻿namespace Domain.Entity
+﻿using Domain.Common;
+namespace Domain.Entity
 {
-    public class Usuario
+    public class Usuario : IEntity
     {
         public int Id { get; set; }
 
