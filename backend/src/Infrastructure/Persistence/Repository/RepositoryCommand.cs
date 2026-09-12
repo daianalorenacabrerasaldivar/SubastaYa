@@ -1,14 +1,16 @@
 using Aplication.Common.Interface;
+using Application.Interfaces;
 using Domain.Common.ResultPattern;
+using Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infraestructure.Persistencia.Repository
 {
-    public class RepositoryCommand : IRepositoryCommand
+    public class RepositoryCommand : ISubastaCommandRepository
     {
         private readonly DbContext _context;
 
-        public RepositoryCommand(DbContext context)
+        public RepositoryCommand(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -18,11 +20,11 @@ namespace Infraestructure.Persistencia.Repository
             _context.Set<TEntity>().Add(entity);
         }
 
-        public async Task<Result<string>> SaveAsync()
+        public async Task<Result<string>> SaveAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                var nroRegistrosModificados = await _context.SaveChangesAsync();
+                var nroRegistrosModificados = await _context.SaveChangesAsync(cancellationToken);
                 if (nroRegistrosModificados > 0)
                 {
                     return new Success<string>($"Se guardaron {nroRegistrosModificados} cambios exitosamente");
