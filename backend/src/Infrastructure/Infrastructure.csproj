@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Folder Include="Bootstrap\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
 
   <ItemGroup>

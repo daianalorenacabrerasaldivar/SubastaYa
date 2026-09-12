@@ -4,6 +4,7 @@ using Application.UseCases.Subasta.Command.Creacion;
 using Application.UseCases.Usuario.Query.BuscarUsuarioPorId;
 using Domain.Common.ResultPattern;
 using Domain.Entity;
+using Domain.Enum;
 using FluentValidation;
 using MediatR;
 
@@ -77,6 +78,11 @@ public sealed class CreateAuctionHandler
 
         var categoria = categoriaResult.Value;
 
+        var ahora = DateTime.Now.AddHours(-3);
+
+        var estadoInicial = request.FechaInicio <= ahora
+            ? EstadoSubasta.ACTIVA
+            : EstadoSubasta.PROGRAMADA;
         // 5. Crear entidad Subasta
         var subasta = new Subasta
         {
@@ -91,7 +97,8 @@ public sealed class CreateAuctionHandler
             IncrementoMinimo = request.IncrementoMinimo,
 
             FechaInicio = request.FechaInicio,
-            FechaFin = request.FechaFin
+            FechaFin = request.FechaFin,
+            Estado = estadoInicial
         };
 
         // 6. Agregar al Repository
