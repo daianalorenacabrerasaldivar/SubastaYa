@@ -2,9 +2,9 @@
 
 namespace Application.UseCases.Subasta.Command.Creacion
 {
-    public class CrearSubastaValidation : AbstractValidator<CreateAuctionCommand>
+    public class CreateAuctionValidation : AbstractValidator<CreateAuctionCommand>
     {
-        public CrearSubastaValidation()
+        public CreateAuctionValidation()
         {
             RuleFor(x => x.VendedorId).GreaterThan(0).WithMessage("El Id del vendedor debe ser mayor que cero.");
             RuleFor(x => x.CategoriaId).GreaterThan(0).WithMessage("El Id de la categoría debe ser mayor que cero.");

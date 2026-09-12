@@ -1,10 +1,10 @@
-﻿using Infrastructure.Persistence.Context;
+﻿using Application.Interfaces.Persistencia;
+using Infrastructure.Persistence.Context;
+using Infrastructure.Persistence.Repository;
+using Infrastructure.Persistence.Repository.Common;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using Application.Interfaces;
-using Aplication.Common.Interface;
-using Infraestructure.Persistencia.Repository;
 
 namespace Infrastructure.Bootstrap
 {
@@ -19,7 +19,7 @@ namespace Infrastructure.Bootstrap
             });
 
             services.AddScoped<IRepositoryCommand, RepositoryCommand>();
-            services.AddScoped<ISubastaCommandRepository, RepositoryCommand>();
+            services.AddScoped<ISubastaRepositoryCommand, SubastaRepositoryCommand>();
             services.AddScoped<IRepositoryQuery, RepositoryQuery<ApplicationDbContext>>();
         }
     }

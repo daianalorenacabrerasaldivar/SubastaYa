@@ -1,9 +1,9 @@
 ﻿using Application.Interfaces;
-using Application.Dto.Auctions;
 using Application.UseCases.Subasta.Command.Creacion;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using 
 
 namespace Api.Controllers
 {
@@ -42,10 +42,10 @@ namespace Api.Controllers
             try
             {
                 var result = await _mediator.Send(command, cancellationToken);
-                // Map Result status to proper HTTP responses
+
                 switch (result.Status)
                 {
-                    case Domain.Common.ResultPattern.DataStatus.Success:
+                    case ResultPattern.DataStatus.Success:
                         // Created with location to GET by id
                         var created = result.Value;
                         return CreatedAtAction(nameof(GetAuctionById), new { id = created?.Id }, created);
