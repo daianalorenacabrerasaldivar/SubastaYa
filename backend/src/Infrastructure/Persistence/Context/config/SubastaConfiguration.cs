@@ -24,11 +24,13 @@ namespace Infrastructure.Persistence.Context.config
 
             builder.Property(x => x.Descripcion)
                 .HasColumnName("descripcion")
-                .HasMaxLength(1000);
+                .HasMaxLength(1000)
+                .IsRequired();
 
             builder.Property(x => x.UrlImagen)
                 .HasColumnName("url_imagen")
-                .HasMaxLength(500);
+                .HasMaxLength(500)
+                .IsRequired();
 
             builder.Property(x => x.PrecioBase)
                  .HasColumnName("precio_base")
@@ -56,9 +58,8 @@ namespace Infrastructure.Persistence.Context.config
 
             // Optimistic Locking - Control de concurrencia
             builder.Property(x => x.Version)
-            .HasColumnName("version")
-            .IsConcurrencyToken()
-            .IsRequired();
+                .HasColumnName("version")
+                .IsRowVersion();
 
 
 
@@ -68,21 +69,21 @@ namespace Infrastructure.Persistence.Context.config
                 .WithMany(x => x.Subastas)
                 .HasForeignKey(x => x.VendedorId)
                 .OnDelete(DeleteBehavior.Restrict);
-           
+
 
             // Relación: Categoría -> Subasta
             builder.HasOne(x => x.Categoria)
                 .WithMany(x => x.Subastas)
                 .HasForeignKey(x => x.CategoriaId)
                 .OnDelete(DeleteBehavior.Restrict);
-         
+
 
             // Relación: Subasta -> Pujas
             builder.HasMany(x => x.Pujas)
                 .WithOne(p => p.Subasta)
                 .HasForeignKey(p => p.SubastaId)
                 .OnDelete(DeleteBehavior.Cascade);
-          
+
             // Relación: Subasta -> Transacciones
             builder.HasMany(x => x.Transacciones)
                 .WithOne(t => t.Subasta)
@@ -94,7 +95,7 @@ namespace Infrastructure.Persistence.Context.config
 
 
             builder.HasIndex(x => x.VendedorId);
-            
+
 
             builder.HasIndex(x => x.CategoriaId);
 
@@ -106,6 +107,13 @@ namespace Infrastructure.Persistence.Context.config
 
             builder.HasIndex(x => x.FechaFin);
             //.HasName("IX_SUBASTA_FECHA_FIN");
+
+
         }
+
+        private void SeedApprovalRules(EntityTypeBuilder<Subasta> builder)
+        {
+        }
+
     }
 }

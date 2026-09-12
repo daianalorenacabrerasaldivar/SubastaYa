@@ -1,7 +1,10 @@
-﻿using Infrastructure.Persistence.Context;
+﻿using Application.Interfaces.Persistencia;
+using Infrastructure.Persistence.Context;
+using Infrastructure.Persistence.Repository;
+using Infrastructure.Persistence.Repository.Common;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Bootstrap
 {
@@ -14,6 +17,10 @@ namespace Infrastructure.Bootstrap
                 var configuration = serviceProvider.GetRequiredService<IConfiguration>();
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
             });
+
+            services.AddScoped<IRepositoryCommand, RepositoryCommand>();
+            services.AddScoped<ISubastaRepositoryCommand, SubastaRepositoryCommand>();
+            services.AddScoped<IRepositoryQuery, RepositoryQuery<ApplicationDbContext>>();
         }
     }
 }

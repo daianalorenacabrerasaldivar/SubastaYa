@@ -6,7 +6,7 @@
 
         public override TResult Value => _value;
 
-        protected override DataStatus DataStatus => DataStatus.Ok;
+        protected override DataStatus DataStatus => DataStatus.Success;
 
         public override string Info => "Success";
 

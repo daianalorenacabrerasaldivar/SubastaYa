@@ -12,7 +12,7 @@
 
         public decimal SaldoDisponible { get; set; }
 
-        public int Version { get; set; }
+        public byte[] Version { get; set; } = Array.Empty<byte>();
 
         // Navegaciones
         public Usuario Usuario { get; set; } = null!;
