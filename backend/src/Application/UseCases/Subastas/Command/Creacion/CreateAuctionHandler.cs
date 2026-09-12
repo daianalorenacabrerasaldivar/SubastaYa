@@ -13,13 +13,13 @@ public sealed class CreateAuctionHandler
         CreateAuctionCommand,
         Result<AuctionDetailResponse>>
 {
-    private readonly ISubastaRepositoryCommand _subastaRepository;
+    private readonly ISubastaCommandRepository _subastaRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<CreateAuctionCommand> _validator;
     private readonly ISender _sender;
 
     public CreateAuctionHandler(
-        ISubastaRepositoryCommand subastaRepository,
+        ISubastaCommandRepository subastaRepository,
         IUnitOfWork unitOfWork,
         IValidator<CreateAuctionCommand> validator,
         ISender sender)
@@ -52,7 +52,7 @@ public sealed class CreateAuctionHandler
 
         // 2. Obtener Usuario mediante CQRS
         var usuarioResult = await _sender.Send(
-            new BuscarUsuarioPorIdQuery(request.VendedorId),
+            new GetUsuarioByIdQuery(request.VendedorId),
             cancellationToken);
 
         if (!usuarioResult.IsSuccess)
@@ -66,7 +66,7 @@ public sealed class CreateAuctionHandler
 
         // 3. Obtener Categoría mediante CQRS
         var categoriaResult = await _sender.Send(
-            new BuscarCategoriaPorIdQuery(request.CategoriaId),
+            new GetCategoriaByIdQuery(request.CategoriaId),
             cancellationToken);
 
         if (!categoriaResult.IsSuccess)
@@ -83,10 +83,10 @@ public sealed class CreateAuctionHandler
         var estadoInicial = request.FechaInicio <= ahora
             ? EstadoSubasta.ACTIVA
             : EstadoSubasta.PROGRAMADA;
-        // 5. Crear entidad Subasta
+        // 5. Crear entity Subasta
         var subasta = new Subasta
         {
-            Id = usuario.Id,
+            VendedorId = usuario.Id,
             CategoriaId = categoria.Id,
 
             Titulo = request.Titulo,
@@ -101,7 +101,7 @@ public sealed class CreateAuctionHandler
             Estado = estadoInicial
         };
 
-        // 6. Agregar al Repository
+        // 6. Add al Repository
         _subastaRepository.Add(subasta);
 
         // 7. Confirmar Unit of Work

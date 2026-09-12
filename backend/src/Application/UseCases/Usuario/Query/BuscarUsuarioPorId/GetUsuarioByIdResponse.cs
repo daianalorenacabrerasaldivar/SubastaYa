@@ -1,6 +1,6 @@
 ﻿namespace Application.UseCases.Usuario.Query.BuscarUsuarioPorId
 {
-    public class BuscarUsuarioPorIdResponse
+    public class GetUsuarioByIdResponse
     {
         public int Id { get;  set;}
         public string Email { get;  set;}

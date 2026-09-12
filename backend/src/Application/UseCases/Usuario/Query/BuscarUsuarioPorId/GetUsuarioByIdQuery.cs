@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.UseCases.Usuario.Query.BuscarUsuarioPorId
 {
-    public record BuscarUsuarioPorIdQuery(int UsuarioId) : IRequest<Result<BuscarUsuarioPorIdResponse>>
+    public record GetUsuarioByIdQuery(int UsuarioId) : IRequest<Result<GetUsuarioByIdResponse>>
     {
     }
 }

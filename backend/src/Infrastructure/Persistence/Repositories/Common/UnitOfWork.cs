@@ -1,32 +1,24 @@
-﻿using Application.Interfaces.Persistencia;
+using Application.Interfaces.Persistencia;
 using Domain.Common.ResultPattern;
 using Infrastructure.Persistence.Context;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity.Infrastructure;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Persistence.Repository.Common
+namespace Infrastructure.Persistence.Repositories.Common
 {
-    public class UnitOfWork : IUnitOfWork
+    public sealed class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
 
         public UnitOfWork(ApplicationDbContext context)
         {
-            _context = context
-                ?? throw new ArgumentNullException(nameof(context));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<Result<string>> SaveChangesAsync(
-            CancellationToken cancellationToken = default)
+        public async Task<Result<string>> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             try
             {
-                var registrosModificados =
-                    await _context.SaveChangesAsync(cancellationToken);
+                var registrosModificados = await _context.SaveChangesAsync(cancellationToken);
 
                 if (registrosModificados > 0)
                 {
@@ -38,10 +30,16 @@ namespace Infrastructure.Persistence.Repository.Common
                     "No se realizaron cambios en la base de datos",
                     DataStatus.Failed);
             }
+            catch (DbUpdateConcurrencyException)
+            {
+                return new Failed<string>(
+                    "El registro fue modificado por otro usuario. Volvé a cargarlo e intentá de nuevo.",
+                    DataStatus.Conflict);
+            }
             catch (DbUpdateException ex)
             {
                 return new Failed<string>(
-                    $"Error al guardar los cambios: {ex.Message}",
+                    $"Error al guardar los cambios: {ex.InnerException?.Message ?? ex.Message}",
                     DataStatus.Failed);
             }
             catch (Exception ex)
@@ -52,5 +50,4 @@ namespace Infrastructure.Persistence.Repository.Common
             }
         }
     }
-
 }
