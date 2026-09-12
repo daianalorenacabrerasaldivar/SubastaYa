@@ -1,8 +1,9 @@
-﻿using Domain.Enum;
+﻿using Domain.Common;
+using Domain.Enum;
 
 namespace Domain.Entity
 {
-    public class Subasta
+    public class Subasta : IEntity
     {
         public int Id { get; set; }
 

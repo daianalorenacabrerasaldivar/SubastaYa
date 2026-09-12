@@ -1,6 +1,7 @@
-﻿namespace Domain.Entity
+﻿using Domain.Common;
+namespace Domain.Entity
 {
-    public class Billetera
+    public class Billetera : IEntity
     {
         public int Id { get; set; }
 

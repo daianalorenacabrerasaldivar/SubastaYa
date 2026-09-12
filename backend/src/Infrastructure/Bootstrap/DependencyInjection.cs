@@ -1,7 +1,9 @@
-﻿using Application.Interfaces.Persistencia;
+using Application.Interfaces.Persistencia;
 using Infrastructure.Persistence.Context;
-using Infrastructure.Persistence.Repository;
-using Infrastructure.Persistence.Repository.Common;
+using Infrastructure.Persistence.Repositories.Categorias;
+using Infrastructure.Persistence.Repositories.Common;
+using Infrastructure.Persistence.Repositories.Subastas;
+using Infrastructure.Persistence.Repositories.Usuarios;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,9 +20,12 @@ namespace Infrastructure.Bootstrap
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
             });
 
-            services.AddScoped<IRepositoryCommand, RepositoryCommand>();
-            services.AddScoped<ISubastaRepositoryCommand, SubastaRepositoryCommand>();
-            services.AddScoped<IRepositoryQuery, RepositoryQuery<ApplicationDbContext>>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddScoped<ISubastaCommandRepository, SubastaCommandRepository>();
+            services.AddScoped<ISubastaQueryRepository, SubastaQueryRepository>();
+            services.AddScoped<IUsuarioQueryRepository, UsuarioQueryRepository>();
+            services.AddScoped<ICategoriaQueryRepository, CategoriaQueryRepository>();
         }
     }
 }

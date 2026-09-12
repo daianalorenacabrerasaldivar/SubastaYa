@@ -1,6 +1,7 @@
-﻿namespace Domain.Entity
+﻿using Domain.Common;
+namespace Domain.Entity
 {
-    public class AuditoriaLog
+    public class AuditoriaLog : IEntity
     {
         public int Id { get; set; }
 
