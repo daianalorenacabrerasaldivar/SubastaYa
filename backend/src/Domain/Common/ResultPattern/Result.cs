@@ -5,14 +5,11 @@
         public abstract TResult Value { get; }
 
         protected abstract DataStatus DataStatus { get; }
-
-        public bool hasValue => DataStatus == DataStatus.Ok;
-
-        public bool IsNone => DataStatus == DataStatus.NullOrEmpty;
-
-        public bool IsFailed => DataStatus == DataStatus.Failed;
-
         public abstract string Info { get; }
+
+        public bool IsSuccess => DataStatus == DataStatus.Success;
+
+        public DataStatus Status => DataStatus;
 
         public static implicit operator TResult(Result<TResult> @this)
         {
@@ -23,7 +20,12 @@
     public enum DataStatus
     {
         Failed,
+        Success,
         NullOrEmpty,
-        Ok
+        NotFound,
+        Conflict,
+        Exception,
+        RequestValidation
     }
+
 }
