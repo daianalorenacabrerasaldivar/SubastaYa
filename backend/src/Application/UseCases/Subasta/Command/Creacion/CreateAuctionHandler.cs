@@ -1,73 +1,128 @@
-﻿using Application.Interfaces;
-using Application.Dto.Auctions;
+﻿using Application.Interfaces.Persistencia;
+using Application.UseCases.Categorias.Queries.BuscarCategoriaPorId;
+using Application.UseCases.Subasta.Command.Creacion;
+using Application.UseCases.Usuario.Query.BuscarUsuarioPorId;
+using Domain.Common.ResultPattern;
+using Domain.Entity;
 using FluentValidation;
 using MediatR;
-using Domain.Common.ResultPattern;
 
-namespace Application.UseCases.Subasta.Command.Creacion
+public sealed class CreateAuctionHandler
+    : IRequestHandler<
+        CreateAuctionCommand,
+        Result<AuctionDetailResponse>>
 {
-    public class CrearSubastaHandler : IRequestHandler<CreateAuctionCommand, Result<AuctionDetailResponse>>
+    private readonly ISubastaRepositoryCommand _subastaRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IValidator<CreateAuctionCommand> _validator;
+    private readonly ISender _sender;
+
+    public CreateAuctionHandler(
+        ISubastaRepositoryCommand subastaRepository,
+        IUnitOfWork unitOfWork,
+        IValidator<CreateAuctionCommand> validator,
+        ISender sender)
     {
-        private readonly ISubastaService _subastaService;
-        private readonly IValidator<CreateAuctionCommand> _validator;
+        _subastaRepository = subastaRepository;
+        _unitOfWork = unitOfWork;
+        _validator = validator;
+        _sender = sender;
+    }
 
-        public CrearSubastaHandler(
-            ISubastaService subastaService,
-            IValidator<CreateAuctionCommand> validator)
+    public async Task<Result<AuctionDetailResponse>> Handle(
+        CreateAuctionCommand request,
+        CancellationToken cancellationToken)
+    {
+        // 1. Validaciones de entrada
+        var validationResult = await _validator.ValidateAsync(
+            request,
+            cancellationToken);
+
+        if (!validationResult.IsValid)
         {
-            _subastaService = subastaService;
-            _validator = validator;
+            var errors = string.Join(
+                " | ",
+                validationResult.Errors.Select(x => x.ErrorMessage));
+
+            return new Failed<AuctionDetailResponse>(
+                errors,
+                DataStatus.RequestValidation);
         }
 
-        public async Task<Result<AuctionDetailResponse>> Handle(CreateAuctionCommand request, CancellationToken cancellationToken)
+        // 2. Obtener Usuario mediante CQRS
+        var usuarioResult = await _sender.Send(
+            new BuscarUsuarioPorIdQuery(request.VendedorId),
+            cancellationToken);
+
+        if (!usuarioResult.IsSuccess)
         {
-            try
-            {
-                await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-                var result = await _subastaService.CreateAsync(new CreateAuctionCommand
-                {
-                    VendedorId = request.VendedorId,
-                    CategoriaId = request.CategoriaId,
-                    Titulo = request.Titulo,
-                    Descripcion = request.Descripcion,
-                    UrlImagen = request.UrlImagen,
-                    PrecioBase = request.PrecioBase,
-                    IncrementoMinimo = request.IncrementoMinimo,
-                    FechaInicio = request.FechaInicio,
-                    FechaFin = request.FechaFin
-                }, cancellationToken);
-
-                if (!result.IsSuccess)
-                {
-                    return new Failed<AuctionDetailResponse>(result.Info, result.Status);
-                }
-
-                var resultValue = result.Value;
-                return new Success<AuctionDetailResponse>(new AuctionDetailResponse
-                {
-                    Id = resultValue.Id,
-                    VendedorId = resultValue.VendedorId,
-                    CategoriaId = resultValue.CategoriaId,
-                    Titulo = resultValue.Titulo,
-                    Descripcion = resultValue.Descripcion,
-                    Url_imagen = resultValue.UrlImagen,
-                    Precio_base = resultValue.PrecioBase,
-                    Incremento_minimo = resultValue.IncrementoMinimo,
-                    Fecha_inicio = resultValue.FechaInicio,
-                    Fecha_fin = resultValue.FechaFin,
-                    Estado = resultValue.Estado.ToString(),
-                    Version = resultValue.Version
-                });
-            }
-            catch (ValidationException ex)
-            {
-                return new Failed<AuctionDetailResponse>(ex.Message, DataStatus.RequestValidation);
-            }
-            catch (Exception ex)
-            {
-                return new Failed<AuctionDetailResponse>(ex.Message, DataStatus.Exception);
-            }
+            return new Failed<AuctionDetailResponse>(
+                usuarioResult.Info,
+                usuarioResult.Status);
         }
+
+        var usuario = usuarioResult.Value;
+
+        // 3. Obtener Categoría mediante CQRS
+        var categoriaResult = await _sender.Send(
+            new BuscarCategoriaPorIdQuery(request.CategoriaId),
+            cancellationToken);
+
+        if (!categoriaResult.IsSuccess)
+        {
+            return new Failed<AuctionDetailResponse>(
+                categoriaResult.Info,
+                categoriaResult.Status);
+        }
+
+        var categoria = categoriaResult.Value;
+
+        // 5. Crear entidad Subasta
+        var subasta = new Subasta
+        {
+            Id = usuario.Id,
+            CategoriaId = categoria.Id,
+
+            Titulo = request.Titulo,
+            Descripcion = request.Descripcion,
+            UrlImagen = request.UrlImagen,
+
+            PrecioBase = request.PrecioBase,
+            IncrementoMinimo = request.IncrementoMinimo,
+
+            FechaInicio = request.FechaInicio,
+            FechaFin = request.FechaFin
+        };
+
+        // 6. Agregar al Repository
+        _subastaRepository.Add(subasta);
+
+        // 7. Confirmar Unit of Work
+        var saveResult = await _unitOfWork.SaveChangesAsync(
+            cancellationToken);
+
+        if (!saveResult.IsSuccess)
+        {
+            return new Failed<AuctionDetailResponse>(
+                saveResult.Info,
+                saveResult.Status);
+        }
+
+        // 8. Crear respuesta
+        var response = new AuctionDetailResponse(
+            subasta.Id,
+             subasta.VendedorId,
+            subasta.CategoriaId,
+            subasta.Titulo,
+            subasta.Descripcion,
+            subasta.UrlImagen,
+            subasta.PrecioBase,
+            subasta.IncrementoMinimo,
+            subasta.FechaInicio,
+            subasta.FechaFin,
+            subasta.Estado.ToString(),
+            subasta.Version);
+
+        return new Success<AuctionDetailResponse>(response);
     }
 }

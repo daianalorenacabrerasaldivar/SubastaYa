@@ -4,10 +4,6 @@ namespace Domain.Entity
 {
     public class Subasta
     {
-        private Subasta()
-        {
-        }
-
         public int Id { get; set; }
 
         public int VendedorId { get; set; }

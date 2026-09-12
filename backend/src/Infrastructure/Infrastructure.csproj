@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Bootstrap\" />
-    <Folder Include="Persistence\Repository\Subasta\" />
   </ItemGroup>
 
   <ItemGroup>
