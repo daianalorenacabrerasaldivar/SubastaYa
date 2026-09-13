@@ -25,7 +25,8 @@
         NotFound,
         Conflict,
         Exception,
-        RequestValidation
+        RequestValidation,
+        BusinessRule
     }
 
 }
