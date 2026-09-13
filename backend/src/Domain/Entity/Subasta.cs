@@ -153,6 +153,80 @@ namespace Domain.Entity
 
             Estado = EstadoSubasta.DESIERTA;
         }
+
+        public static readonly TimeSpan VentanaAntiSniping = TimeSpan.FromSeconds(60);
+
+        public static readonly TimeSpan ExtensionAntiSniping = TimeSpan.FromMinutes(2);
+
+        public Puja? PujaLider => Pujas
+            .OrderByDescending(p => p.Monto)
+            .ThenByDescending(p => p.FechaPuja)
+            .FirstOrDefault();
+
+        public static decimal CalcularMontoMinimo(decimal? ofertaMasAlta, decimal precioBase, decimal incrementoMinimo)
+        {
+            return ofertaMasAlta.HasValue ? ofertaMasAlta.Value + incrementoMinimo : precioBase;
+        }
+
+        public decimal MontoMinimoProximaPuja()
+        {
+            return CalcularMontoMinimo(PujaLider?.Monto, PrecioBase, IncrementoMinimo);
+        }
+
+        public bool EstaAbiertaParaPujas(DateTime ahora)
+        {
+            return Estado == EstadoSubasta.ACTIVA && FechaInicio <= ahora && ahora < FechaFin;
+        }
+
+        public Puja RegistrarPuja(int compradorId, decimal monto, DateTime ahora)
+        {
+            if (!EstaAbiertaParaPujas(ahora))
+            {
+                throw new InvalidOperationException("La subasta no está abierta para pujas.");
+            }
+
+            if (compradorId == VendedorId)
+            {
+                throw new InvalidOperationException("El vendedor no puede pujar en su propia subasta.");
+            }
+
+            if (PujaLider?.CompradorId == compradorId)
+            {
+                throw new InvalidOperationException("El postor ya es el líder de la subasta.");
+            }
+
+            if (monto < MontoMinimoProximaPuja())
+            {
+                throw new InvalidOperationException($"El monto mínimo para pujar es {MontoMinimoProximaPuja()}.");
+            }
+
+            var puja = new Puja
+            {
+                SubastaId = Id,
+                CompradorId = compradorId,
+                Monto = monto,
+                FechaPuja = ahora
+            };
+
+            Pujas.Add(puja);
+            return puja;
+        }
+
+        public bool AplicarAntiSniping(DateTime ahora)
+        {
+            if (!EstaAbiertaParaPujas(ahora))
+            {
+                throw new InvalidOperationException("La subasta no está abierta para pujas.");
+            }
+
+            if (FechaFin - ahora > VentanaAntiSniping)
+            {
+                return false;
+            }
+
+            FechaFin = FechaFin.Add(ExtensionAntiSniping);
+            return true;
+        }
     }
 
 }

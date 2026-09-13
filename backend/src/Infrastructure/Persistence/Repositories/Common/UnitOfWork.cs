@@ -14,6 +14,11 @@ namespace Infrastructure.Persistence.Repositories.Common
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
+        public void DiscardChanges()
+        {
+            _context.ChangeTracker.Clear();
+        }
+
         public async Task<Result<string>> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             try

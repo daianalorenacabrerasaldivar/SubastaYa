@@ -25,7 +25,7 @@ namespace Infrastructure.Persistence.Repositories.Common
             Set.Add(entity);
         }
 
-        public void Update(TEntity entity)
+        public virtual void Update(TEntity entity)
         {
             Set.Update(entity);
         }
