@@ -23,7 +23,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddDependencyInjectionApplication();
 builder.Services.AddDependencyInjectionInfrastructure();
+builder.Services.AddProblemDetails();
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();

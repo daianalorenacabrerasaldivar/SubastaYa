@@ -17,11 +17,12 @@ namespace Infrastructure.Persistence.Repositories.Subastas
             Set.Entry(entity).State = EntityState.Modified;
         }
 
+        public override async Task<Subasta?> GetByIdAsync(int id, CancellationToken cancellationToken) =>
+            await Set.Include(s => s.Pujas).FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+
         public Task<Subasta?> GetForBiddingAsync(int id, CancellationToken cancellationToken)
         {
-            return Set
-                .Include(s => s.Pujas)
-                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+            return GetByIdAsync(id, cancellationToken);
         }
     }
 }

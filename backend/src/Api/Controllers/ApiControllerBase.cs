@@ -20,6 +20,8 @@ namespace Api.Controllers
                 DataStatus.Conflict => (StatusCodes.Status409Conflict, "Conflicto"),
                 DataStatus.BusinessRule => (StatusCodes.Status422UnprocessableEntity, "Regla de negocio no cumplida"),
                 DataStatus.Exception => (StatusCodes.Status500InternalServerError, "Error interno"),
+                DataStatus.Failed => (StatusCodes.Status500InternalServerError, "Error interno"),
+                DataStatus.NullOrEmpty => (StatusCodes.Status500InternalServerError, "Error interno"),
                 _ => (StatusCodes.Status400BadRequest, "La operación no pudo completarse")
             };
 

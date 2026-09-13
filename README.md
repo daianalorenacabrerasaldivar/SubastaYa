@@ -428,6 +428,14 @@ rechazo queda en `auditoria_log` con acción `PujaRechazadaConcurrencia` o `Puja
 
 El mismo comportamiento se prueba sin HTTP en
 `backend/tests/Infrastructure/SubastaYa.Infrastructure.IntegrationTests/Concurrencia/ConcurrenciaOptimistaTests.cs`.
+Para correrlo:
+
+```bash
+dotnet test backend/tests/Infrastructure/SubastaYa.Infrastructure.IntegrationTests
+```
+
+Necesita `ConnectionStrings__DefaultConnection` (variable de entorno o user-secrets) apuntando a una base
+de datos ya sembrada.
 
 ---
 
