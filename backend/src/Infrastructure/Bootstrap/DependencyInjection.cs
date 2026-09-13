@@ -1,5 +1,7 @@
 using Application.Interfaces.Persistencia;
 using Infrastructure.Persistence.Context;
+using Infrastructure.Persistence.Repositories.Auditoria;
+using Infrastructure.Persistence.Repositories.Billeteras;
 using Infrastructure.Persistence.Repositories.Categorias;
 using Infrastructure.Persistence.Repositories.Common;
 using Infrastructure.Persistence.Repositories.Subastas;
@@ -26,6 +28,8 @@ namespace Infrastructure.Bootstrap
             services.AddScoped<ISubastaQueryRepository, SubastaQueryRepository>();
             services.AddScoped<IUsuarioQueryRepository, UsuarioQueryRepository>();
             services.AddScoped<ICategoriaQueryRepository, CategoriaQueryRepository>();
+            services.AddScoped<IBilleteraCommandRepository, BilleteraCommandRepository>();
+            services.AddScoped<IAuditoriaLogCommandRepository, AuditoriaLogCommandRepository>();
         }
     }
 }

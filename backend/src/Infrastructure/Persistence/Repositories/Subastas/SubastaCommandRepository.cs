@@ -2,6 +2,7 @@ using Application.Interfaces.Persistencia;
 using Domain.Entity;
 using Infrastructure.Persistence.Context;
 using Infrastructure.Persistence.Repositories.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Repositories.Subastas
 {
@@ -9,6 +10,18 @@ namespace Infrastructure.Persistence.Repositories.Subastas
     {
         public SubastaCommandRepository(ApplicationDbContext context) : base(context)
         {
+        }
+
+        public override void Update(Subasta entity)
+        {
+            Set.Entry(entity).State = EntityState.Modified;
+        }
+
+        public Task<Subasta?> GetForBiddingAsync(int id, CancellationToken cancellationToken)
+        {
+            return Set
+                .Include(s => s.Pujas)
+                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
         }
     }
 }

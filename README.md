@@ -398,13 +398,36 @@ cd backend
 
 ### Interpretación de Resultados
 
-| Status | Significado                                       | Acción                                    |
-|--------|---------------------------------------------------|-------------------------------------------|
-| 200    | Puja exitosa, saldo retenido, auditoría registrada| ✓ Puja válida procesada                  |
-| 409    | Conflicto de versión, otro cliente actualizó     | Obtener subasta actualizada y reintentar |
-| 400    | Datos inválidos (monto, subasta no activa)      | Verificar parámetros de solicitud         |
-| 404    | Subasta no encontrada                            | Verificar ID de subasta                   |
-| 422    | Saldo insuficiente (Escrow)                      | Usuario debe depositar fondos             |
+| Status | Significado | Acción |
+|--------|-------------|--------|
+| 201    | Puja registrada: saldo retenido, retención del líder anterior liberada y auditoría escrita | ✓ Puja válida procesada |
+| 400    | Datos inválidos de formato (`compradorId` o `monto` menores o iguales a cero) | Verificar el cuerpo de la solicitud |
+| 404    | La subasta o la billetera del postor no existen | Verificar el id de subasta y que el usuario tenga billetera |
+| 409    | La subasta no está abierta (PROGRAMADA, FINALIZADA, DESIERTA o vencida) o conflicto de versión (`rowversion`) | Obtener la subasta actualizada y reintentar |
+| 422    | Regla de negocio: saldo disponible insuficiente, monto menor al mínimo, el vendedor ofertando en su propia subasta o el postor ya lidera | Corregir el monto, depositar fondos o esperar a que otro postor supere la oferta |
+| 500    | Error inesperado al registrar la puja | Reintentar; el detalle queda en `auditoria_log` |
+
+---
+
+## Prueba de concurrencia optimista
+
+Dos peticiones idénticas de puja enviadas en paralelo sobre la misma subasta: la base
+registra una sola y la otra recibe `409 Conflict`, porque las tablas `subasta` y
+`billetera` tienen una columna `rowversion` y el `UPDATE` de la segunda no encuentra
+la versión que leyó.
+
+Con la API corriendo (`dotnet run --project backend/src/Api`):
+
+```powershell
+powershell -File backend/scripts/stress-puja.ps1 -BaseUrl http://localhost:5073 -AuctionId 1 -CompradorId 3 -Monto 60000
+```
+
+Salida esperada: una línea `HTTP 201` y una `HTTP 409` (o `HTTP 422` "Ya sos el postor
+líder" si la segunda petición leyó la base después de que la primera confirmó). El
+rechazo queda en `auditoria_log` con acción `PujaRechazadaConcurrencia` o `PujaRechazada`.
+
+El mismo comportamiento se prueba sin HTTP en
+`backend/tests/Infrastructure/SubastaYa.Infrastructure.IntegrationTests/Concurrencia/ConcurrenciaOptimistaTests.cs`.
 
 ---
 
