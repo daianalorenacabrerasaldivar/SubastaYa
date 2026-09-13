@@ -48,7 +48,7 @@ namespace Infrastructure.Persistence.Repositories.Subastas
                 CategoriaNombre = s.Categoria.Nombre,
                 s.PrecioBase,
                 OfertaMasAlta = s.Pujas.Max(p => (decimal?)p.Monto),
-                CantidadOfertas = s.Pujas.Count(),
+                CantidadOfertas = s.Pujas.Count,
                 s.FechaInicio,
                 s.FechaFin,
                 s.Estado
@@ -106,7 +106,7 @@ namespace Infrastructure.Persistence.Repositories.Subastas
                     s.PrecioBase,
                     s.IncrementoMinimo,
                     s.Pujas.Max(p => (decimal?)p.Monto),
-                    s.Pujas.Count(),
+                    s.Pujas.Count,
                     s.Pujas
                         .OrderByDescending(p => p.Monto)
                         .ThenByDescending(p => p.FechaPuja)

@@ -54,40 +54,49 @@ namespace Application.UseCases.Pujas.Command.Ofertar
 
             if (!subasta.EstaAbiertaParaPujas(ahora))
             {
-                return await RechazarAsync(subasta, request, "La subasta no está abierta para pujas.", DataStatus.Conflict, ahora, cancellationToken);
+                return await RechazarAsync(subasta, request, "La subasta no está abierta para pujas.", DataStatus.Conflict, null, ahora, cancellationToken);
             }
 
             if (request.CompradorId == subasta.VendedorId)
             {
-                return await RechazarAsync(subasta, request, "El vendedor no puede pujar en su propia subasta.", DataStatus.BusinessRule, ahora, cancellationToken);
+                return await RechazarAsync(subasta, request, "El vendedor no puede pujar en su propia subasta.", DataStatus.BusinessRule, null, ahora, cancellationToken);
             }
 
             var pujaLider = subasta.PujaLider;
 
             if (pujaLider?.CompradorId == request.CompradorId)
             {
-                return await RechazarAsync(subasta, request, "Ya sos el postor líder de esta subasta.", DataStatus.BusinessRule, ahora, cancellationToken);
+                return await RechazarAsync(subasta, request, "Ya sos el postor líder de esta subasta.", DataStatus.BusinessRule, null, ahora, cancellationToken);
             }
 
             var montoMinimo = subasta.MontoMinimoProximaPuja();
 
             if (request.Monto < montoMinimo)
             {
-                return await RechazarAsync(subasta, request, $"El monto mínimo para pujar es {montoMinimo}.", DataStatus.BusinessRule, ahora, cancellationToken);
+                return await RechazarAsync(subasta, request, $"El monto mínimo para pujar es {montoMinimo}.", DataStatus.BusinessRule, null, ahora, cancellationToken);
             }
 
             var billetera = await _billeteraRepository.GetByUsuarioIdAsync(request.CompradorId, cancellationToken);
 
             if (billetera is null)
             {
-                var motivoSinBilletera = $"El usuario {request.CompradorId} no tiene billetera.";
+                const string motivoSinBilletera = "No se encontró la billetera del comprador.";
                 _ = await AuditarRechazoAsync(subasta.Id, request, "PujaRechazada", motivoSinBilletera, null, ahora, cancellationToken);
                 return new Failed<PlaceBidResponse>(motivoSinBilletera, DataStatus.NotFound);
             }
 
             if (!billetera.PuedeRetener(request.Monto))
             {
-                return await RechazarAsync(subasta, request, $"Saldo disponible insuficiente: {billetera.SaldoDisponible}.", DataStatus.BusinessRule, ahora, cancellationToken);
+                const string motivoSaldoInsuficiente = "Saldo disponible insuficiente para el monto solicitado.";
+                return await RechazarAsync(
+                    subasta,
+                    request,
+                    motivoSaldoInsuficiente,
+                    DataStatus.BusinessRule,
+                    request.CompradorId,
+                    ahora,
+                    cancellationToken,
+                    new { request.CompradorId, request.Monto, Motivo = motivoSaldoInsuficiente, billetera.SaldoDisponible });
             }
 
             if (pujaLider is not null)
@@ -165,10 +174,12 @@ namespace Application.UseCases.Pujas.Command.Ofertar
             PlaceBidCommand request,
             string motivo,
             DataStatus status,
+            int? usuarioId,
             DateTime ahora,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            object? detalle = null)
         {
-            _ = await AuditarRechazoAsync(subasta.Id, request, "PujaRechazada", motivo, request.CompradorId, ahora, cancellationToken);
+            _ = await AuditarRechazoAsync(subasta.Id, request, "PujaRechazada", motivo, usuarioId, ahora, cancellationToken, detalle);
             return new Failed<PlaceBidResponse>(motivo, status);
         }
 
@@ -179,7 +190,8 @@ namespace Application.UseCases.Pujas.Command.Ofertar
             string motivo,
             int? usuarioId,
             DateTime ahora,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            object? detalle = null)
         {
             _auditoriaRepository.Add(new AuditoriaLog
             {
@@ -187,7 +199,7 @@ namespace Application.UseCases.Pujas.Command.Ofertar
                 EntidadId = subastaId,
                 Accion = accion,
                 UsuarioId = usuarioId,
-                DetalleJson = JsonSerializer.Serialize(new { request.CompradorId, request.Monto, Motivo = motivo }),
+                DetalleJson = JsonSerializer.Serialize(detalle ?? new { request.CompradorId, request.Monto, Motivo = motivo }),
                 Fecha = ahora
             });
 

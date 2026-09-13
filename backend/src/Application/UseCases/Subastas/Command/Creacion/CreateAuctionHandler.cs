@@ -98,8 +98,8 @@ public sealed class CreateAuctionHandler
         if (!saveResult.IsSuccess)
         {
             return new Failed<AuctionDetailResponse>(
-                saveResult.Info,
-                saveResult.Status);
+                "No se pudo crear la subasta. Intentá de nuevo.",
+                saveResult.Status == DataStatus.Conflict ? DataStatus.Conflict : DataStatus.Exception);
         }
 
         // 8. Crear respuesta
