@@ -26,7 +26,6 @@
     <Folder Include="Mappers\" />
     <Folder Include="Enum\" />
     <Folder Include="Services\" />
-    <Folder Include="UseCases\Subastas\Query\Listar\" />
   </ItemGroup>
 
 </Project>
