@@ -103,6 +103,56 @@ namespace Domain.Entity
                 Estado = fechaInicio > DateTime.UtcNow ? EstadoSubasta.PROGRAMADA : EstadoSubasta.ACTIVA
             };
         }
+
+        public bool PuedeFinalizar(DateTime ahora)
+        {
+            return Estado == EstadoSubasta.ACTIVA && FechaFin <= ahora && Pujas.Count > 0;
+        }
+
+        public void Finalizar(DateTime ahora)
+        {
+            if (Estado != EstadoSubasta.ACTIVA)
+            {
+                throw new InvalidOperationException("Solo una subasta ACTIVA puede pasar a FINALIZADA.");
+            }
+
+            if (FechaFin > ahora)
+            {
+                throw new InvalidOperationException("La subasta todavía no venció.");
+            }
+
+            if (Pujas.Count == 0)
+            {
+                throw new InvalidOperationException("Una subasta sin pujas no puede finalizar con ganador; corresponde MarcarDesierta.");
+            }
+
+            Estado = EstadoSubasta.FINALIZADA;
+        }
+
+        public bool PuedeMarcarDesierta(DateTime ahora)
+        {
+            return Estado == EstadoSubasta.ACTIVA && FechaFin <= ahora && Pujas.Count == 0;
+        }
+
+        public void MarcarDesierta(DateTime ahora)
+        {
+            if (Estado != EstadoSubasta.ACTIVA)
+            {
+                throw new InvalidOperationException("Solo una subasta ACTIVA puede pasar a DESIERTA.");
+            }
+
+            if (FechaFin > ahora)
+            {
+                throw new InvalidOperationException("La subasta todavía no venció.");
+            }
+
+            if (Pujas.Count > 0)
+            {
+                throw new InvalidOperationException("Una subasta con pujas no puede quedar desierta; corresponde Finalizar.");
+            }
+
+            Estado = EstadoSubasta.DESIERTA;
+        }
     }
 
 }

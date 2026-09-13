@@ -140,7 +140,7 @@ namespace Infrastructure.Persistence.Context
         {
             var ahora = DateTime.UtcNow;
 
-            return new List<Subasta>
+            var subastas = new List<Subasta>
             {
                 // 1. Activa estándar: Cierra en 20-30 min (con 2 pujas previas cargadas; líder $45.000)
                 Subasta.Create(
@@ -203,6 +203,10 @@ namespace Infrastructure.Persistence.Context
                     fechaFin: ahora.AddMinutes(-45)
                 )
             };
+
+            subastas[4].MarcarDesierta(ahora);
+
+            return subastas;
         }
 
         private static async Task SeedPujasYTransacciones(
@@ -342,7 +346,8 @@ namespace Infrastructure.Persistence.Context
                     Monto = 7500,
                     FechaPuja = ahora.AddHours(-2)
                 };
-                pujas.Add(pujaGanadora);
+                subastaVencidaGanador.Pujas.Add(pujaGanadora);
+                subastaVencidaGanador.Finalizar(ahora);
 
                 // Transacción: Pago de la subasta ganada
                 transacciones.Add(new TransaccionLedger

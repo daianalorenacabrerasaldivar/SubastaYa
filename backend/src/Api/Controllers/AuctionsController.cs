@@ -1,4 +1,4 @@
-﻿using Application.UseCases.Subasta.Command.Creacion;
+﻿using Application.UseCases.Subastas.Command.Creacion;
 using Domain.Common.ResultPattern;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

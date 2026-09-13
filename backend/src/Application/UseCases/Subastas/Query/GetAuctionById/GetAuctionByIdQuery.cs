@@ -2,7 +2,7 @@
 using MediatR;
 using Application.Dto.Auctions;
 
-namespace Application.UseCases.Subasta.Query.GetAuctionById
+namespace Application.UseCases.Subastas.Query.GetAuctionById
 {
     public class GetAuctionByIdQuery : IRequest<Result<AuctionDetailResponseDto?>>
     {

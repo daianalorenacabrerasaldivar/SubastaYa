@@ -1,10 +1,9 @@
 ﻿using Application.Interfaces.Persistencia;
 using Application.UseCases.Categorias.Queries.BuscarCategoriaPorId;
-using Application.UseCases.Subasta.Command.Creacion;
+using Application.UseCases.Subastas.Command.Creacion;
 using Application.UseCases.Usuario.Query.BuscarUsuarioPorId;
 using Domain.Common.ResultPattern;
 using Domain.Entity;
-using Domain.Enum;
 using FluentValidation;
 using MediatR;
 
@@ -78,30 +77,18 @@ public sealed class CreateAuctionHandler
 
         var categoria = categoriaResult.Value;
 
-        var ahora = DateTime.Now.AddHours(-3);
+        var subasta = Subasta.Create(
+            usuario.Id,
+            categoria.Id,
+            request.Titulo,
+            request.Descripcion,
+            request.UrlImagen,
+            request.PrecioBase,
+            request.IncrementoMinimo,
+            request.FechaInicio,
+            request.FechaFin);
 
-        var estadoInicial = request.FechaInicio <= ahora
-            ? EstadoSubasta.ACTIVA
-            : EstadoSubasta.PROGRAMADA;
-        // 5. Crear entity Subasta
-        var subasta = new Subasta
-        {
-            VendedorId = usuario.Id,
-            CategoriaId = categoria.Id,
-
-            Titulo = request.Titulo,
-            Descripcion = request.Descripcion,
-            UrlImagen = request.UrlImagen,
-
-            PrecioBase = request.PrecioBase,
-            IncrementoMinimo = request.IncrementoMinimo,
-
-            FechaInicio = request.FechaInicio,
-            FechaFin = request.FechaFin,
-            Estado = estadoInicial
-        };
-
-        // 6. Add al Repository
+        // 6. Agregar al repositorio
         _subastaRepository.Add(subasta);
 
         // 7. Confirmar Unit of Work

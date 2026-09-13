@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Application.UseCases.Subasta.Command.Creacion
+namespace Application.UseCases.Subastas.Command.Creacion
 {
     public class CreateAuctionValidation : AbstractValidator<CreateAuctionCommand>
     {
