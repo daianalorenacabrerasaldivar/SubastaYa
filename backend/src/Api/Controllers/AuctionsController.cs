@@ -1,4 +1,7 @@
+using Application.Common;
+using Application.Interfaces.Persistencia.Lectura;
 using Application.UseCases.Subastas.Command.Creacion;
+using Application.UseCases.Subastas.Query.Listar;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +15,26 @@ namespace Api.Controllers
         public AuctionsController(ISender sender)
         {
             _sender = sender;
+        }
+
+        /// <summary>
+        /// Lista subastas con filtros, orden y paginación.
+        /// </summary>
+        /// <remarks>
+        /// Filtros: status (Activas, Proximas, Finalizadas), categoryId, minPrice y maxPrice sobre el precio actual.
+        /// Orden: sortBy TiempoRestante (default) o MayorPuja. Paginación: page desde 1, pageSize hasta 100.
+        /// </remarks>
+        /// <response code="200">Página de subastas con metadata de paginación.</response>
+        /// <response code="400">Parámetros de filtro o paginación inválidos.</response>
+        [HttpGet]
+        [ProducesResponseType(typeof(PagedResponse<AuctionListItem>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<PagedResponse<AuctionListItem>>> GetAuctions(
+            [FromQuery] ListAuctionsQuery query,
+            CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(query, cancellationToken);
+            return FromResult(result);
         }
 
         /// <summary>
