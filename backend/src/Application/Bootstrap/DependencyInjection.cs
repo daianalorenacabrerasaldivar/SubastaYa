@@ -1,4 +1,4 @@
-using Application.UseCases.Subasta.Command.Creacion;
+using Application.UseCases.Subastas.Command.Creacion;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;

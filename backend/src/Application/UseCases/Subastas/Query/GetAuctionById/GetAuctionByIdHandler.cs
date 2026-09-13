@@ -7,7 +7,7 @@
 //using MediatR;
 //using Microsoft.EntityFrameworkCore;
 
-//namespace Application.UseCases.Subasta.Query.GetAuctionById
+//namespace Application.UseCases.Subastas.Query.GetAuctionById
 //{
 //    public class GetAuctionByIdHandler : IRequestHandler<GetAuctionByIdQuery, Result<AuctionDetailResponseDto?>>
 //    {

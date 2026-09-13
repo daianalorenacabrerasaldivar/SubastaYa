@@ -1,7 +1,7 @@
 ﻿using Domain.Common.ResultPattern;
 using MediatR;
 
-namespace Application.UseCases.Subasta.Command.Creacion
+namespace Application.UseCases.Subastas.Command.Creacion
 {
     public class CreateAuctionCommand : IRequest<Result<AuctionDetailResponse>>
     {
