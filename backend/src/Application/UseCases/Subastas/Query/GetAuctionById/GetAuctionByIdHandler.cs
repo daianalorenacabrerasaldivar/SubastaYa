@@ -1,53 +1,50 @@
-﻿//using Aplication.Common.Interface;
-//using Application.Dto.Auctions;
-//using Application.Interfaces;
-//using Aplication.Common.Interface;
-//using Domain.Common.ResultPattern;
-//using Domain.Entity;
-//using MediatR;
-//using Microsoft.EntityFrameworkCore;
+using Application.Interfaces.Persistencia;
+using Domain.Common.ResultPattern;
+using Domain.Entity;
+using MediatR;
 
-//namespace Application.UseCases.Subastas.Query.GetAuctionById
-//{
-//    public class GetAuctionByIdHandler : IRequestHandler<GetAuctionByIdQuery, Result<AuctionDetailResponseDto?>>
-//    {
-//        private readonly IRepositoryQuery _queryRepository;
+namespace Application.UseCases.Subastas.Query.GetAuctionById
+{
+    public sealed class GetAuctionByIdHandler : IRequestHandler<GetAuctionByIdQuery, Result<GetAuctionByIdResponse>>
+    {
+        private readonly ISubastaQueryRepository _subastaRepository;
 
-//        public GetAuctionByIdHandler(IRepositoryQuery queryRepository)
-//        {
-//            _queryRepository = queryRepository;
-//        }
+        public GetAuctionByIdHandler(ISubastaQueryRepository subastaRepository)
+        {
+            _subastaRepository = subastaRepository;
+        }
 
-//        public async Task<Result<AuctionDetailResponseDto?>> Handle(
-//            GetAuctionByIdQuery request,
-//            CancellationToken cancellationToken)
-//        {
-//            var subasta = await _queryRepository.Query<Subasta>()
-//                .AsNoTracking()
-//                .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+        public async Task<Result<GetAuctionByIdResponse>> Handle(GetAuctionByIdQuery request, CancellationToken cancellationToken)
+        {
+            var detalle = await _subastaRepository.GetDetailAsync(request.Id, cancellationToken);
 
-//            if (subasta is null)
-//            {
-//                return new Success<AuctionDetailResponseDto?>(null);
-//            }
+            if (detalle is null)
+            {
+                return new Failed<GetAuctionByIdResponse>($"No existe la subasta con Id {request.Id}.", DataStatus.NotFound);
+            }
 
-//            return new Success<AuctionDetailResponseDto?>(Map(subasta));
-//        }
+            var response = new GetAuctionByIdResponse(
+                detalle.Id,
+                detalle.VendedorId,
+                detalle.VendedorNombre,
+                detalle.CategoriaId,
+                detalle.CategoriaNombre,
+                detalle.Titulo,
+                detalle.Descripcion,
+                detalle.UrlImagen,
+                detalle.PrecioBase,
+                detalle.IncrementoMinimo,
+                detalle.OfertaMasAlta,
+                detalle.CantidadOfertas,
+                detalle.PostorLiderId,
+                Subasta.CalcularMontoMinimo(detalle.OfertaMasAlta, detalle.PrecioBase, detalle.IncrementoMinimo),
+                detalle.FechaInicio,
+                detalle.FechaFin,
+                detalle.Estado,
+                DateTime.UtcNow,
+                detalle.Version);
 
-//        private static AuctionDetailResponseDto Map(Subasta subasta) => new()
-//        {
-//            Id = subasta.Id,
-//            VendedorId = subasta.VendedorId,
-//            CategoriaId = subasta.CategoriaId,
-//            Titulo = subasta.Titulo,
-//            Descripcion = subasta.Descripcion,
-//            UrlImagen = subasta.UrlImagen,
-//            PrecioBase = subasta.PrecioBase,
-//            IncrementoMinimo = subasta.IncrementoMinimo,
-//            FechaInicio = subasta.FechaInicio,
-//            FechaFin = subasta.FechaFin,
-//            Estado = subasta.Estado,
-//            Version = subasta.Version.ToArray()
-//        };
-//    }
-//}
+            return new Success<GetAuctionByIdResponse>(response);
+        }
+    }
+}

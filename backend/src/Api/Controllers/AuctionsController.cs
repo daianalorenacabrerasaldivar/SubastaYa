@@ -1,6 +1,7 @@
 using Application.Common;
 using Application.Interfaces.Persistencia.Lectura;
 using Application.UseCases.Subastas.Command.Creacion;
+using Application.UseCases.Subastas.Query.GetAuctionById;
 using Application.UseCases.Subastas.Query.Listar;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -59,6 +60,20 @@ namespace Api.Controllers
         {
             var result = await _sender.Send(command, cancellationToken);
             return FromResult(result, StatusCodes.Status201Created);
+        }
+
+        /// <summary>
+        /// Detalle completo de una subasta con su estado y puja actual.
+        /// </summary>
+        /// <response code="200">Detalle de la subasta.</response>
+        /// <response code="404">La subasta no existe.</response>
+        [HttpGet("{id:int}")]
+        [ProducesResponseType(typeof(GetAuctionByIdResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GetAuctionByIdResponse>> GetAuctionById(int id, CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(new GetAuctionByIdQuery(id), cancellationToken);
+            return FromResult(result);
         }
     }
 }

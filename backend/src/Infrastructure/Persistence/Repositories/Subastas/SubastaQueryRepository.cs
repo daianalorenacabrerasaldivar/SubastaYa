@@ -89,5 +89,34 @@ namespace Infrastructure.Persistence.Repositories.Subastas
 
             return new PagedResult<AuctionListItem>(items, totalItems);
         }
+
+        public Task<AuctionDetail?> GetDetailAsync(int id, CancellationToken cancellationToken)
+        {
+            return Query
+                .Where(s => s.Id == id)
+                .Select(s => new AuctionDetail(
+                    s.Id,
+                    s.VendedorId,
+                    s.Vendedor.Nombre,
+                    s.CategoriaId,
+                    s.Categoria.Nombre,
+                    s.Titulo,
+                    s.Descripcion,
+                    s.UrlImagen,
+                    s.PrecioBase,
+                    s.IncrementoMinimo,
+                    s.Pujas.Max(p => (decimal?)p.Monto),
+                    s.Pujas.Count(),
+                    s.Pujas
+                        .OrderByDescending(p => p.Monto)
+                        .ThenByDescending(p => p.FechaPuja)
+                        .Select(p => (int?)p.CompradorId)
+                        .FirstOrDefault(),
+                    s.FechaInicio,
+                    s.FechaFin,
+                    s.Estado,
+                    s.Version))
+                .FirstOrDefaultAsync(cancellationToken);
+        }
     }
 }

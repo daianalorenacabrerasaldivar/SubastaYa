@@ -9,5 +9,7 @@ namespace Application.Interfaces.Persistencia
         Task<IReadOnlyList<Subasta>> ListByStatusAsync(EstadoSubasta status, CancellationToken cancellationToken);
 
         Task<PagedResult<AuctionListItem>> ListAsync(AuctionListFilter filter, CancellationToken cancellationToken);
+
+        Task<AuctionDetail?> GetDetailAsync(int id, CancellationToken cancellationToken);
     }
 }

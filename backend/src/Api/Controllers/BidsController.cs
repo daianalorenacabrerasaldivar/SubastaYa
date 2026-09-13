@@ -1,4 +1,6 @@
+using Application.Interfaces.Persistencia.Lectura;
 using Application.UseCases.Pujas.Command.Ofertar;
+using Application.UseCases.Pujas.Query.ListarPorSubasta;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,6 +45,22 @@ namespace Api.Controllers
             command.SubastaId = auctionId;
             var result = await _sender.Send(command, cancellationToken);
             return FromResult(result, StatusCodes.Status201Created);
+        }
+
+        /// <summary>
+        /// Historial de ofertas de la subasta, de la más reciente a la más antigua.
+        /// </summary>
+        /// <param name="auctionId">Id de la subasta.</param>
+        /// <param name="cancellationToken">Token de cancelación.</param>
+        /// <response code="200">Lista de ofertas con monto, seudónimo del postor y hora.</response>
+        /// <response code="404">La subasta no existe.</response>
+        [HttpGet]
+        [ProducesResponseType(typeof(IReadOnlyList<BidHistoryItem>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<IReadOnlyList<BidHistoryItem>>> GetBids(int auctionId, CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(new ListBidsQuery(auctionId), cancellationToken);
+            return FromResult(result);
         }
     }
 }
