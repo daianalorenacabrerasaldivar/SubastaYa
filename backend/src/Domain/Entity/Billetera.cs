@@ -77,6 +77,32 @@ namespace Domain.Entity
             return transaccion;
         }
 
+        public TransaccionLedger Pagar(decimal monto, int subastaId, DateTime ahora)
+        {
+            if (monto <= 0)
+                throw new InvalidOperationException("El monto del pago debe ser mayor que cero.");
+
+            if (monto > SaldoRetenido)
+                throw new InvalidOperationException("El monto supera el saldo retenido del comprador.");
+
+            SaldoRetenido -= monto;
+            SaldoTotal -= monto;
+            SaldoDisponible = SaldoTotal - SaldoRetenido;
+
+            return RegistrarMovimiento(TipoTransaccion.Pago, monto, subastaId, ahora);
+        }
+
+        public TransaccionLedger Cobrar(decimal monto, int subastaId, DateTime ahora)
+        {
+            if (monto <= 0)
+                throw new InvalidOperationException("El monto del cobro debe ser mayor que cero.");
+
+            SaldoTotal += monto;
+            SaldoDisponible = SaldoTotal - SaldoRetenido;
+
+            return RegistrarMovimiento(TipoTransaccion.Cobro, monto, subastaId, ahora);
+        }
+
         private TransaccionLedger RegistrarMovimiento(TipoTransaccion tipo, decimal monto, int subastaId, DateTime ahora)
         {
             var transaccion = new TransaccionLedger
