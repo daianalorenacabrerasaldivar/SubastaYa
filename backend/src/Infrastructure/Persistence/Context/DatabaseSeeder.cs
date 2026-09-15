@@ -107,24 +107,24 @@ namespace Infrastructure.Persistence.Context
             {
                 new Billetera
                 {
-                    UsuarioId = usuarios[0].Id, // vendedor@test.com
-                    SaldoTotal = 0,
+                    UsuarioId = usuarios[0].Id, // vendedor@test.com — cobró $7.500 por Bicicleta Fixie
+                    SaldoTotal = 7500,
                     SaldoRetenido = 0,
-                    SaldoDisponible = 0
+                    SaldoDisponible = 7500
                 },
                 new Billetera
                 {
-                    UsuarioId = usuarios[1].Id, // comprador1@test.com
+                    UsuarioId = usuarios[1].Id, // comprador1@test.com — $45.000 retenidos (postor líder iPhone)
                     SaldoTotal = 150000,
                     SaldoRetenido = 45000,
                     SaldoDisponible = 105000
                 },
                 new Billetera
                 {
-                    UsuarioId = usuarios[2].Id, // comprador2@test.com
-                    SaldoTotal = 200000,
-                    SaldoRetenido = 0,
-                    SaldoDisponible = 200000
+                    UsuarioId = usuarios[2].Id, // comprador2@test.com — pagó $7.500 Bicicleta; $12.000 retenidos Charizard
+                    SaldoTotal = 192500,
+                    SaldoRetenido = 12000,
+                    SaldoDisponible = 180500
                 },
                 new Billetera
                 {
@@ -216,66 +216,61 @@ namespace Infrastructure.Persistence.Context
             CancellationToken cancellationToken)
         {
             var billeteras = context.Billeteras.ToList();
-            var comprador1 = usuarios[1]; // comprador1@test.com
-            var comprador2 = usuarios[2]; // comprador2@test.com
-            var billetera1 = billeteras.First(b => b.UsuarioId == comprador1.Id);
-            var billetera2 = billeteras.First(b => b.UsuarioId == comprador2.Id);
+            var comprador1 = usuarios[1];
+            var comprador2 = usuarios[2];
+            var sinfondos  = usuarios[3];
+            var billetera1        = billeteras.First(b => b.UsuarioId == comprador1.Id);
+            var billetera2        = billeteras.First(b => b.UsuarioId == comprador2.Id);
+            var billeteraVendedor = billeteras.First(b => b.UsuarioId == usuarios[0].Id);
+            var billeteraSinfondos = billeteras.First(b => b.UsuarioId == sinfondos.Id);
 
             var ahora = DateTime.UtcNow;
             var pujas = new List<Puja>();
             var transacciones = new List<TransaccionLedger>();
 
-            // Subastas reales (sin IDs aún, serán asignados tras SaveChanges)
-            var subastaActiva = context.Subastas.FirstOrDefault(s => 
-                s.Titulo.Contains("iPhone 15 Pro Max"));
-            var subastaVencidaGanador = context.Subastas.FirstOrDefault(s => 
-                s.Titulo.Contains("Bicicleta Fixie Vintage"));
+            var subastaActiva        = context.Subastas.FirstOrDefault(s => s.Titulo.Contains("iPhone 15 Pro Max"));
+            var subastaCharizard     = context.Subastas.FirstOrDefault(s => s.Titulo.Contains("Charizard"));
+            var subastaVencidaGanador = context.Subastas.FirstOrDefault(s => s.Titulo.Contains("Bicicleta Fixie"));
 
-            // 1. Pujas en la subasta activa estándar
+            // ── Depósitos iniciales ──────────────────────────────────────────────────
+            transacciones.Add(new TransaccionLedger
+            {
+                BilleteraId = billetera1.Id,
+                Tipo = TipoTransaccion.Deposito,
+                Monto = 150000,
+                Fecha = ahora.AddDays(-30),
+                SubastaId = null
+            });
+
+            transacciones.Add(new TransaccionLedger
+            {
+                BilleteraId = billetera2.Id,
+                Tipo = TipoTransaccion.Deposito,
+                Monto = 200000,
+                Fecha = ahora.AddDays(-20),
+                SubastaId = null
+            });
+
+            transacciones.Add(new TransaccionLedger
+            {
+                BilleteraId = billeteraSinfondos.Id,
+                Tipo = TipoTransaccion.Deposito,
+                Monto = 500,
+                Fecha = ahora.AddDays(-5),
+                SubastaId = null
+            });
+
+            // ── iPhone 15 Pro Max — 3 pujas con ciclo completo Retención/Liberación ─
             if (subastaActiva != null)
             {
-                // Primera puja: Comprador 1 por $35.000
-                var puja1 = new Puja
+                // Puja 1 — comprador1 $35.000
+                pujas.Add(new Puja
                 {
                     SubastaId = subastaActiva.Id,
                     CompradorId = comprador1.Id,
                     Monto = 35000,
                     FechaPuja = ahora.AddMinutes(-5)
-                };
-                pujas.Add(puja1);
-
-                // Segunda puja: Comprador 2 por $40.000
-                var puja2 = new Puja
-                {
-                    SubastaId = subastaActiva.Id,
-                    CompradorId = comprador2.Id,
-                    Monto = 40000,
-                    FechaPuja = ahora.AddMinutes(-3)
-                };
-                pujas.Add(puja2);
-
-                // Tercera puja (actual): Comprador 1 por $45.000
-                var puja3 = new Puja
-                {
-                    SubastaId = subastaActiva.Id,
-                    CompradorId = comprador1.Id,
-                    Monto = 45000,
-                    FechaPuja = ahora.AddMinutes(-1)
-                };
-                pujas.Add(puja3);
-
-                // Transacciones en el ledger (auditoría de movimientos)
-                // 1. Depósito inicial de comprador1 (simulado, históricamente)
-                transacciones.Add(new TransaccionLedger
-                {
-                    BilleteraId = billetera1.Id,
-                    Tipo = TipoTransaccion.Deposito,
-                    Monto = 150000,
-                    Fecha = ahora.AddDays(-30),
-                    SubastaId = null
                 });
-
-                // 2. Retención por primera puja de $35.000
                 transacciones.Add(new TransaccionLedger
                 {
                     BilleteraId = billetera1.Id,
@@ -285,17 +280,22 @@ namespace Infrastructure.Persistence.Context
                     SubastaId = subastaActiva.Id
                 });
 
-                // 3. Liberación de retención anterior ($35.000)
+                // Puja 2 — comprador2 $40.000  →  libera retención de comprador1
+                pujas.Add(new Puja
+                {
+                    SubastaId = subastaActiva.Id,
+                    CompradorId = comprador2.Id,
+                    Monto = 40000,
+                    FechaPuja = ahora.AddMinutes(-3)
+                });
                 transacciones.Add(new TransaccionLedger
                 {
                     BilleteraId = billetera1.Id,
                     Tipo = TipoTransaccion.Liberacion,
                     Monto = 35000,
-                    Fecha = ahora.AddMinutes(-4),
+                    Fecha = ahora.AddMinutes(-3),
                     SubastaId = null
                 });
-
-                // 4. Retención por segunda puja de $40.000 de comprador2
                 transacciones.Add(new TransaccionLedger
                 {
                     BilleteraId = billetera2.Id,
@@ -305,17 +305,22 @@ namespace Infrastructure.Persistence.Context
                     SubastaId = subastaActiva.Id
                 });
 
-                // 5. Liberación de retención de comprador2 ($40.000)
+                // Puja 3 (líder actual) — comprador1 $45.000  →  libera retención de comprador2
+                pujas.Add(new Puja
+                {
+                    SubastaId = subastaActiva.Id,
+                    CompradorId = comprador1.Id,
+                    Monto = 45000,
+                    FechaPuja = ahora.AddMinutes(-1)
+                });
                 transacciones.Add(new TransaccionLedger
                 {
                     BilleteraId = billetera2.Id,
                     Tipo = TipoTransaccion.Liberacion,
                     Monto = 40000,
-                    Fecha = ahora.AddMinutes(-2),
+                    Fecha = ahora.AddMinutes(-1),
                     SubastaId = null
                 });
-
-                // 6. Retención final por tercera puja de $45.000 de comprador1
                 transacciones.Add(new TransaccionLedger
                 {
                     BilleteraId = billetera1.Id,
@@ -324,19 +329,29 @@ namespace Infrastructure.Persistence.Context
                     Fecha = ahora.AddMinutes(-1),
                     SubastaId = subastaActiva.Id
                 });
+            }
 
-                // Depósito inicial de comprador2
+            // ── Charizard — 1 puja activa de comprador2 (zona crítica < 2 min) ──────
+            if (subastaCharizard != null)
+            {
+                pujas.Add(new Puja
+                {
+                    SubastaId = subastaCharizard.Id,
+                    CompradorId = comprador2.Id,
+                    Monto = 12000,
+                    FechaPuja = ahora.AddSeconds(-120)
+                });
                 transacciones.Add(new TransaccionLedger
                 {
                     BilleteraId = billetera2.Id,
-                    Tipo = TipoTransaccion.Deposito,
-                    Monto = 200000,
-                    Fecha = ahora.AddDays(-20),
-                    SubastaId = null
+                    Tipo = TipoTransaccion.Retencion,
+                    Monto = 12000,
+                    Fecha = ahora.AddSeconds(-120),
+                    SubastaId = subastaCharizard.Id
                 });
             }
 
-            // 2. Puja ganadora en la subasta vencida
+            // ── Bicicleta Fixie — puja ganadora + Retención → Pago + Cobro vendedor ─
             if (subastaVencidaGanador != null)
             {
                 var pujaGanadora = new Puja
@@ -349,29 +364,37 @@ namespace Infrastructure.Persistence.Context
                 subastaVencidaGanador.Pujas.Add(pujaGanadora);
                 subastaVencidaGanador.Finalizar(ahora);
 
-                // Transacción: Pago de la subasta ganada
+                // Retención al momento de la puja
+                transacciones.Add(new TransaccionLedger
+                {
+                    BilleteraId = billetera2.Id,
+                    Tipo = TipoTransaccion.Retencion,
+                    Monto = 7500,
+                    Fecha = ahora.AddHours(-2),
+                    SubastaId = subastaVencidaGanador.Id
+                });
+
+                // Adjudicación: la retención se convierte en Pago (reduce SaldoTotal del comprador)
                 transacciones.Add(new TransaccionLedger
                 {
                     BilleteraId = billetera2.Id,
                     Tipo = TipoTransaccion.Pago,
                     Monto = 7500,
-                    Fecha = ahora.AddHours(-1),
+                    Fecha = ahora.AddMinutes(-30),
                     SubastaId = subastaVencidaGanador.Id
                 });
 
-                // Transacción: Cobro al vendedor
-                var billeteraVendedor = billeteras.First(b => b.UsuarioId == usuarios[0].Id);
+                // Cobro al vendedor
                 transacciones.Add(new TransaccionLedger
                 {
                     BilleteraId = billeteraVendedor.Id,
                     Tipo = TipoTransaccion.Cobro,
                     Monto = 7500,
-                    Fecha = ahora.AddHours(-1),
+                    Fecha = ahora.AddMinutes(-30),
                     SubastaId = subastaVencidaGanador.Id
                 });
             }
 
-            // Agregar pujas y transacciones a la base de datos
             context.Pujas.AddRange(pujas);
             context.TransaccionesLedger.AddRange(transacciones);
             await context.SaveChangesAsync(cancellationToken);
