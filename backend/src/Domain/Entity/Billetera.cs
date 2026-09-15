@@ -1,4 +1,4 @@
-using Domain.Common;
+﻿using Domain.Common;
 using Domain.Enum;
 
 namespace Domain.Entity
@@ -55,6 +55,26 @@ namespace Domain.Entity
             SaldoDisponible = SaldoTotal - SaldoRetenido;
 
             return RegistrarMovimiento(TipoTransaccion.Liberacion, monto, subastaId, ahora);
+        }
+
+        public TransaccionLedger Depositar(decimal monto, DateTime ahora)
+        {
+            if (monto <= 0)
+                throw new InvalidOperationException("El monto del deposito debe ser mayor que cero.");
+
+            SaldoTotal += monto;
+            SaldoDisponible = SaldoTotal - SaldoRetenido;
+
+            var transaccion = new TransaccionLedger
+            {
+                BilleteraId = Id,
+                Tipo = TipoTransaccion.Deposito,
+                Monto = monto,
+                Fecha = ahora
+            };
+
+            Transacciones.Add(transaccion);
+            return transaccion;
         }
 
         private TransaccionLedger RegistrarMovimiento(TipoTransaccion tipo, decimal monto, int subastaId, DateTime ahora)
