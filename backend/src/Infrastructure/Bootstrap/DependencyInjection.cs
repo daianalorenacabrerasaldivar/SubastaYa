@@ -30,6 +30,7 @@ namespace Infrastructure.Bootstrap
             services.AddScoped<IUsuarioQueryRepository, UsuarioQueryRepository>();
             services.AddScoped<ICategoriaQueryRepository, CategoriaQueryRepository>();
             services.AddScoped<IBilleteraCommandRepository, BilleteraCommandRepository>();
+            services.AddScoped<IBilleteraQueryRepository, BilleteraQueryRepository>();
             services.AddScoped<IAuditoriaLogCommandRepository, AuditoriaLogCommandRepository>();
             services.AddScoped<IPujaQueryRepository, PujaQueryRepository>();
         }
