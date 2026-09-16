@@ -2,10 +2,12 @@ using Application.Interfaces.Persistencia.Lectura;
 using Application.UseCases.Usuarios.Query.MisPujas;
 using Application.UseCases.Usuarios.Query.MisSubastas;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
+    [Authorize]
     [Route("api/v1/users")]
     public sealed class UsersController : ApiControllerBase
     {

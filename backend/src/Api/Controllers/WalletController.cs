@@ -3,10 +3,12 @@ using Application.UseCases.Billetera.Command.Depositar;
 using Application.UseCases.Billetera.Query.ConsultarSaldo;
 using Application.UseCases.Billetera.Query.ListarTransacciones;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
+    [Authorize]
     [Route("api/v1/wallet")]
     public sealed class WalletController : ApiControllerBase
     {
