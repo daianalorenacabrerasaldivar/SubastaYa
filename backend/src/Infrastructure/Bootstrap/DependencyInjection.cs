@@ -1,4 +1,5 @@
 using Application.Interfaces.Persistencia;
+using Application.Interfaces.Services;
 using Infrastructure.Persistence.Context;
 using Infrastructure.Persistence.Repositories.Auditoria;
 using Infrastructure.Persistence.Repositories.Billeteras;
@@ -7,6 +8,7 @@ using Infrastructure.Persistence.Repositories.Common;
 using Infrastructure.Persistence.Repositories.Pujas;
 using Infrastructure.Persistence.Repositories.Subastas;
 using Infrastructure.Persistence.Repositories.Usuarios;
+using Infrastructure.Services;
 using Infrastructure.Workers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -36,6 +38,8 @@ namespace Infrastructure.Bootstrap
             services.AddScoped<IPujaQueryRepository, PujaQueryRepository>();
 
             services.AddHostedService<AdjudicacionWorker>();
+
+            services.AddScoped<IJwtTokenService, JwtTokenService>();
         }
     }
 }

@@ -1,0 +1,463 @@
+{
+  "info": {
+    "name": "SubastaYa API",
+    "description": "Colección completa de endpoints del backend SubastaYa. Base URL: http://localhost:5073\n\nUsuarios seed:\n- vendedor   id=1\n- comprador1 id=2  (saldo $150k, retenido $45k)\n- comprador2 id=3  (saldo $192.5k)\n- sinfondos  id=4  (saldo $500)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "subastaYa-v1"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5073", "type": "string" },
+    { "key": "subastaActiva",   "value": "1", "type": "string" },
+    { "key": "subastaDetalle",  "value": "1", "type": "string" },
+    { "key": "vendedorId",      "value": "1", "type": "string" },
+    { "key": "comprador1Id",    "value": "2", "type": "string" },
+    { "key": "comprador2Id",    "value": "3", "type": "string" },
+    { "key": "sinfondosId",     "value": "4", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auctions",
+      "item": [
+        {
+          "name": "Listar subastas (sin filtro)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"]
+            }
+          }
+        },
+        {
+          "name": "Listar subastas ACTIVAS",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions?Status=Activas",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"],
+              "query": [{ "key": "Status", "value": "Activas" }]
+            }
+          }
+        },
+        {
+          "name": "Listar subastas PROXIMAS",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions?Status=Proximas",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"],
+              "query": [{ "key": "Status", "value": "Proximas" }]
+            }
+          }
+        },
+        {
+          "name": "Listar subastas FINALIZADAS",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions?Status=Finalizadas",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"],
+              "query": [{ "key": "Status", "value": "Finalizadas" }]
+            }
+          }
+        },
+        {
+          "name": "Listar subastas - filtro por categoría",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions?CategoryId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"],
+              "query": [{ "key": "CategoryId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Listar subastas - filtro precio",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions?MinPrice=1000&MaxPrice=50000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"],
+              "query": [
+                { "key": "MinPrice", "value": "1000" },
+                { "key": "MaxPrice", "value": "50000" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar subastas - paginado página 2",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions?Page=2&PageSize=3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"],
+              "query": [
+                { "key": "Page", "value": "2" },
+                { "key": "PageSize", "value": "3" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Detalle subasta #1",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions/{{subastaDetalle}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions", "{{subastaDetalle}}"]
+            }
+          }
+        },
+        {
+          "name": "Detalle subasta - 404 (id inexistente)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions", "9999"]
+            }
+          }
+        },
+        {
+          "name": "Crear subasta ACTIVA",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendedorId\": 1,\n  \"categoriaId\": 2,\n  \"titulo\": \"Guitarra Fender Stratocaster\",\n  \"descripcion\": \"Guitarra eléctrica en excelente estado, color sunburst\",\n  \"urlImagen\": \"https://example.com/guitarra.jpg\",\n  \"precioBase\": 15000,\n  \"incrementoMinimo\": 500,\n  \"fechaInicio\": \"2026-09-15T00:00:00\",\n  \"fechaFin\": \"2026-09-30T23:59:00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Crear subasta PROGRAMADA (inicio futuro)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendedorId\": 1,\n  \"categoriaId\": 1,\n  \"titulo\": \"MacBook Pro M3 — Programada\",\n  \"descripcion\": \"Notebook Apple en excelente estado\",\n  \"urlImagen\": \"https://example.com/mac.jpg\",\n  \"precioBase\": 80000,\n  \"incrementoMinimo\": 2000,\n  \"fechaInicio\": \"2026-10-01T10:00:00\",\n  \"fechaFin\": \"2026-10-07T23:59:00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Crear subasta - 400 fechas inválidas",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vendedorId\": 1,\n  \"categoriaId\": 1,\n  \"titulo\": \"Test fechas\",\n  \"descripcion\": \"desc\",\n  \"urlImagen\": \"https://example.com/img.jpg\",\n  \"precioBase\": 1000,\n  \"incrementoMinimo\": 100,\n  \"fechaInicio\": \"2026-09-30T00:00:00\",\n  \"fechaFin\": \"2026-09-15T00:00:00\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bids",
+      "item": [
+        {
+          "name": "Historial de pujas - subasta #1",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions/1/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions", "1", "bids"]
+            }
+          }
+        },
+        {
+          "name": "Historial de pujas - 404 (subasta inexistente)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions/9999/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions", "9999", "bids"]
+            }
+          }
+        },
+        {
+          "name": "Registrar puja válida (comprador2)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions/1/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions", "1", "bids"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subastaId\": 1,\n  \"compradorId\": 3,\n  \"monto\": 48000\n}"
+            }
+          }
+        },
+        {
+          "name": "Registrar puja - 422 saldo insuficiente (sinfondos)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions/1/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions", "1", "bids"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subastaId\": 1,\n  \"compradorId\": 4,\n  \"monto\": 50000\n}"
+            }
+          }
+        },
+        {
+          "name": "Registrar puja - 422 vendedor pujando",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions/1/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions", "1", "bids"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subastaId\": 1,\n  \"compradorId\": 1,\n  \"monto\": 50000\n}"
+            }
+          }
+        },
+        {
+          "name": "Registrar puja - 422 monto menor al mínimo",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auctions/1/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auctions", "1", "bids"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subastaId\": 1,\n  \"compradorId\": 3,\n  \"monto\": 100\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Listar todas las categorías",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (Mis Actividades)",
+      "item": [
+        {
+          "name": "Mis Pujas - comprador1 (id=2)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{comprador1Id}}/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "{{comprador1Id}}", "bids"]
+            }
+          }
+        },
+        {
+          "name": "Mis Pujas - comprador2 (id=3)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{comprador2Id}}/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "{{comprador2Id}}", "bids"]
+            }
+          }
+        },
+        {
+          "name": "Mis Pujas - 404 usuario inexistente",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/9999/bids",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "9999", "bids"]
+            }
+          }
+        },
+        {
+          "name": "Mis Subastas - vendedor (id=1)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/{{vendedorId}}/auctions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "{{vendedorId}}", "auctions"]
+            }
+          }
+        },
+        {
+          "name": "Mis Subastas - 404 usuario inexistente",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/9999/auctions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "9999", "auctions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Balance - comprador1 (id=2)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/wallet/balance?usuarioId={{comprador1Id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "wallet", "balance"],
+              "query": [{ "key": "usuarioId", "value": "{{comprador1Id}}" }]
+            }
+          }
+        },
+        {
+          "name": "Balance - comprador2 (id=3)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/wallet/balance?usuarioId={{comprador2Id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "wallet", "balance"],
+              "query": [{ "key": "usuarioId", "value": "{{comprador2Id}}" }]
+            }
+          }
+        },
+        {
+          "name": "Balance - 404 usuario inexistente",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/wallet/balance?usuarioId=9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "wallet", "balance"],
+              "query": [{ "key": "usuarioId", "value": "9999" }]
+            }
+          }
+        },
+        {
+          "name": "Transacciones - comprador1 (id=2)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/wallet/transactions?usuarioId={{comprador1Id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "wallet", "transactions"],
+              "query": [{ "key": "usuarioId", "value": "{{comprador1Id}}" }]
+            }
+          }
+        },
+        {
+          "name": "Transacciones - comprador2 (id=3)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/wallet/transactions?usuarioId={{comprador2Id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "wallet", "transactions"],
+              "query": [{ "key": "usuarioId", "value": "{{comprador2Id}}" }]
+            }
+          }
+        },
+        {
+          "name": "Depositar saldo - comprador2",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/wallet/deposit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "wallet", "deposit"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": 3,\n  \"monto\": 10000\n}"
+            }
+          }
+        },
+        {
+          "name": "Depositar saldo - 400 monto cero",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/wallet/deposit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "wallet", "deposit"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": 3,\n  \"monto\": 0\n}"
+            }
+          }
+        },
+        {
+          "name": "Depositar saldo - 400 supera límite $1M",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/wallet/deposit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "wallet", "deposit"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioId\": 3,\n  \"monto\": 1000001\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

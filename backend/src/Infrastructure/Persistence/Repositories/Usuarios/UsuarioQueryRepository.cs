@@ -17,6 +17,9 @@ namespace Infrastructure.Persistence.Repositories.Usuarios
             _context = context;
         }
 
+        public Task<Usuario?> GetByEmailAsync(string email, CancellationToken cancellationToken)
+            => Query.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+
         public async Task<IReadOnlyList<UserBidActivityItem>> ListBidActivityAsync(
             int usuarioId, CancellationToken cancellationToken)
         {

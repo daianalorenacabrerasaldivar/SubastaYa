@@ -1,4 +1,5 @@
 using Application.Interfaces.Persistencia;
+using Application.Interfaces.Services;
 using Domain.Common.ResultPattern;
 using Domain.Entity;
 using FluentValidation;
@@ -18,19 +19,22 @@ namespace Application.UseCases.Pujas.Command.Ofertar
         private readonly IAuditoriaLogCommandRepository _auditoriaRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IValidator<PlaceBidCommand> _validator;
+        private readonly IAuctionNotifier _notifier;
 
         public PlaceBidHandler(
             ISubastaCommandRepository subastaRepository,
             IBilleteraCommandRepository billeteraRepository,
             IAuditoriaLogCommandRepository auditoriaRepository,
             IUnitOfWork unitOfWork,
-            IValidator<PlaceBidCommand> validator)
+            IValidator<PlaceBidCommand> validator,
+            IAuctionNotifier notifier)
         {
             _subastaRepository = subastaRepository;
             _billeteraRepository = billeteraRepository;
             _auditoriaRepository = auditoriaRepository;
             _unitOfWork = unitOfWork;
             _validator = validator;
+            _notifier = notifier;
         }
 
         public async Task<Result<PlaceBidResponse>> Handle(PlaceBidCommand request, CancellationToken cancellationToken)
@@ -165,6 +169,16 @@ namespace Application.UseCases.Pujas.Command.Ofertar
                 subasta.MontoMinimoProximaPuja(),
                 subasta.FechaFin,
                 extendida);
+
+            _ = _notifier.NotificarNuevaPujaAsync(subasta.Id, new
+            {
+                subastaId        = subasta.Id,
+                monto            = puja.Monto,
+                cantidadOfertas  = subasta.Pujas.Count,
+                proximaMinima    = subasta.MontoMinimoProximaPuja(),
+                fechaFin         = subasta.FechaFin,
+                extendida
+            }, cancellationToken);
 
             return new Success<PlaceBidResponse>(response);
         }
