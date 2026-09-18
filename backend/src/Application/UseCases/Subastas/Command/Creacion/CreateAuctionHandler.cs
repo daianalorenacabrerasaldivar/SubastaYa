@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces.Persistencia;
 using Application.UseCases.Categorias.Queries.BuscarCategoriaPorId;
 using Application.UseCases.Subastas.Command.Creacion;
-using Application.UseCases.Usuario.Query.BuscarUsuarioPorId;
+using Application.UseCases.Usuarios.Query.BuscarUsuarioPorId;
 using Domain.Common.ResultPattern;
 using Domain.Entity;
 using FluentValidation;

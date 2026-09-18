@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Domain.Entity;
 using Domain.Enum;
+using RolUsuario = Domain.Enum.RolUsuario;
 
 namespace Infrastructure.Persistence.Context
 {
@@ -75,6 +76,7 @@ namespace Infrastructure.Persistence.Context
                     Email = "vendedor@test.com",
                     Nombre = "Vendedor Test",
                     PasswordHash = passwordHash,
+                    Rol = RolUsuario.Vendedor,
                     FechaRegistro = DateTime.UtcNow
                 },
                 new Usuario
@@ -82,6 +84,7 @@ namespace Infrastructure.Persistence.Context
                     Email = "comprador1@test.com",
                     Nombre = "Comprador Uno",
                     PasswordHash = passwordHash,
+                    Rol = RolUsuario.Comprador,
                     FechaRegistro = DateTime.UtcNow
                 },
                 new Usuario
@@ -89,6 +92,7 @@ namespace Infrastructure.Persistence.Context
                     Email = "comprador2@test.com",
                     Nombre = "Comprador Dos",
                     PasswordHash = passwordHash,
+                    Rol = RolUsuario.Comprador,
                     FechaRegistro = DateTime.UtcNow
                 },
                 new Usuario
@@ -96,6 +100,7 @@ namespace Infrastructure.Persistence.Context
                     Email = "sinfondos@test.com",
                     Nombre = "Sin Fondos",
                     PasswordHash = passwordHash,
+                    Rol = RolUsuario.Comprador,
                     FechaRegistro = DateTime.UtcNow
                 }
             };
