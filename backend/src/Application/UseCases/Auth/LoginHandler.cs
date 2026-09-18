@@ -40,6 +40,7 @@ namespace Application.UseCases.Auth
                 usuario.Id,
                 usuario.Nombre,
                 usuario.Email,
+                usuario.Rol,
                 token,
                 expira));
         }

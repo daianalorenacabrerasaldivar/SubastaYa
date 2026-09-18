@@ -1,4 +1,6 @@
 ﻿using Domain.Common;
+using Domain.Enum;
+
 namespace Domain.Entity
 {
     public class Usuario : IEntity
@@ -10,6 +12,8 @@ namespace Domain.Entity
         public string Nombre { get; set; } = string.Empty;
 
         public string PasswordHash { get; set; } = string.Empty;
+
+        public RolUsuario Rol { get; set; } = RolUsuario.Comprador;
 
         public DateTime FechaRegistro { get; set; }
 
