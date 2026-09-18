@@ -394,5 +394,8 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+# Claude Code
+.claude/
+
 # JetBrains Rider
 *.sln.iml

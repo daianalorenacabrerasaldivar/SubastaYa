@@ -1,4 +1,5 @@
 using Application.Interfaces.Persistencia.Lectura;
+using Application.UseCases.Usuarios.Query.BuscarUsuarioPorEmail;
 using Application.UseCases.Usuarios.Query.MisPujas;
 using Application.UseCases.Usuarios.Query.MisSubastas;
 using MediatR;
@@ -16,6 +17,25 @@ namespace Api.Controllers
         public UsersController(ISender sender)
         {
             _sender = sender;
+        }
+
+        /// <summary>
+        /// Busca un usuario por su dirección de email.
+        /// </summary>
+        /// <param name="email">Email del usuario a buscar.</param>
+        /// <param name="cancellationToken">Token de cancelacion.</param>
+        /// <response code="200">Usuario encontrado.</response>
+        /// <response code="404">No existe un usuario con ese email.</response>
+        [AllowAnonymous]
+        [HttpGet]
+        [ProducesResponseType(typeof(GetUsuarioByEmailResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GetUsuarioByEmailResponse>> GetByEmail(
+            [FromQuery] string email,
+            CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(new GetUsuarioByEmailQuery(email), cancellationToken);
+            return FromResult(result);
         }
 
         /// <summary>

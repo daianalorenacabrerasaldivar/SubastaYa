@@ -8,10 +8,23 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.FileProviders;
+using Serilog;
 using System.Reflection;
 using System.Text;
 
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateBootstrapLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((ctx, services, config) => config
+    .ReadFrom.Configuration(ctx.Configuration)
+    .ReadFrom.Services(services)
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -102,6 +115,7 @@ builder.Services.AddScoped<IAuctionNotifier, SignalRAuctionNotifier>();
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseSerilogRequestLogging();
 
 app.UseSwagger();
 
@@ -123,7 +137,37 @@ if (app.Environment.IsDevelopment())
     }
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
+
+// Servir el frontend en desarrollo para evitar CORS entre puertos
+if (app.Environment.IsDevelopment())
+{
+    var frontendRelPath = app.Configuration["FrontendPath"];
+    if (!string.IsNullOrEmpty(frontendRelPath))
+    {
+        var frontendAbsPath = Path.GetFullPath(
+            frontendRelPath,
+            app.Environment.ContentRootPath);
+
+        if (Directory.Exists(frontendAbsPath))
+        {
+            var fp = new PhysicalFileProvider(frontendAbsPath);
+            app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = fp, RequestPath = "" });
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = fp,
+                RequestPath  = "",
+                OnPrepareResponse = ctx =>
+                {
+                    if (ctx.File.Name.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+                        ctx.Context.Response.Headers["Cache-Control"] = "no-store";
+                }
+            });
+            Log.Information("Frontend servido desde {Path}", frontendAbsPath);
+        }
+    }
+}
 
 app.UseCors("Frontend");
 
