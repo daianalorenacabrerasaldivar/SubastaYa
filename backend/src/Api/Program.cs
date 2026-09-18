@@ -1,34 +1,122 @@
-﻿using Application.Bootstrap;
+﻿using Api.Hubs;
+using Api.Services;
+using Application.Bootstrap;
+using Application.Interfaces.Services;
 using Infrastructure.Bootstrap;
 using Infrastructure.Persistence.Context;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Microsoft.Extensions.FileProviders;
+using Serilog;
 using System.Reflection;
+using System.Text;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Host.UseSerilog((ctx, services, config) => config
+    .ReadFrom.Configuration(ctx.Configuration)
+    .ReadFrom.Services(services)
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+builder.Services.AddSignalR();
+
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials());
+});
+
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Jwt:Key no configurado.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer           = true,
+            ValidateAudience         = true,
+            ValidateLifetime         = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer              = builder.Configuration["Jwt:Issuer"],
+            ValidAudience            = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                var accessToken = ctx.Request.Query["access_token"];
+                var path = ctx.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                    ctx.Token = accessToken;
+                return Task.CompletedTask;
+            }
+        };
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name         = "Authorization",
+        Type         = SecuritySchemeType.Http,
+        Scheme       = "bearer",
+        BearerFormat = "JWT",
+        In           = ParameterLocation.Header,
+        Description  = "Ingresá el token JWT. Ejemplo: Bearer {token}"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
+
 builder.Services.AddDependencyInjectionApplication();
 builder.Services.AddDependencyInjectionInfrastructure();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddScoped<IAuctionNotifier, SignalRAuctionNotifier>();
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseSerilogRequestLogging();
 
-// Configure the HTTP request pipeline.
 app.UseSwagger();
 
 if (app.Environment.IsDevelopment())
@@ -41,7 +129,6 @@ if (app.Environment.IsDevelopment())
         c.DefaultModelExpandDepth(2);
     });
 
-    // Aplicar migraciones y semear datos en desarrollo
     using (var scope = app.Services.CreateScope())
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -50,10 +137,44 @@ if (app.Environment.IsDevelopment())
     }
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 
+// Servir el frontend en desarrollo para evitar CORS entre puertos
+if (app.Environment.IsDevelopment())
+{
+    var frontendRelPath = app.Configuration["FrontendPath"];
+    if (!string.IsNullOrEmpty(frontendRelPath))
+    {
+        var frontendAbsPath = Path.GetFullPath(
+            frontendRelPath,
+            app.Environment.ContentRootPath);
+
+        if (Directory.Exists(frontendAbsPath))
+        {
+            var fp = new PhysicalFileProvider(frontendAbsPath);
+            app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = fp, RequestPath = "" });
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = fp,
+                RequestPath  = "",
+                OnPrepareResponse = ctx =>
+                {
+                    if (ctx.File.Name.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+                        ctx.Context.Response.Headers["Cache-Control"] = "no-store";
+                }
+            });
+            Log.Information("Frontend servido desde {Path}", frontendAbsPath);
+        }
+    }
+}
+
+app.UseCors("Frontend");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<AuctionHub>("/hubs/auctions");
 
 app.Run();

@@ -1,5 +1,6 @@
 using Application.Interfaces.Persistencia;
 using Domain.Entity;
+using Domain.Enum;
 using Infrastructure.Persistence.Context;
 using Infrastructure.Persistence.Repositories.Common;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,23 @@ namespace Infrastructure.Persistence.Repositories.Subastas
         public Task<Subasta?> GetForBiddingAsync(int id, CancellationToken cancellationToken)
         {
             return GetByIdAsync(id, cancellationToken);
+        }
+
+        public Task<IReadOnlyList<Subasta>> GetVencidasAsync(DateTime ahora, CancellationToken cancellationToken)
+        {
+            return Set
+                .Include(s => s.Pujas)
+                .Where(s => s.Estado == EstadoSubasta.ACTIVA && s.FechaFin <= ahora)
+                .ToListAsync(cancellationToken)
+                .ContinueWith(t => (IReadOnlyList<Subasta>)t.Result, TaskContinuationOptions.ExecuteSynchronously);
+        }
+
+        public Task<IReadOnlyList<Subasta>> GetProgramadasParaActivarAsync(DateTime ahora, CancellationToken cancellationToken)
+        {
+            return Set
+                .Where(s => s.Estado == EstadoSubasta.PROGRAMADA && s.FechaInicio <= ahora)
+                .ToListAsync(cancellationToken)
+                .ContinueWith(t => (IReadOnlyList<Subasta>)t.Result, TaskContinuationOptions.ExecuteSynchronously);
         }
     }
 }

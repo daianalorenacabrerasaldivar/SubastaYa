@@ -1,4 +1,5 @@
 ﻿using Domain.Entity;
+using Domain.Enum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -32,6 +33,12 @@ namespace Infrastructure.Persistence.Context.config
             builder.Property(x => x.PasswordHash)
                 .HasColumnName("password_hash")
                 .HasMaxLength(500)
+                .IsRequired();
+
+            builder.Property(x => x.Rol)
+                .HasColumnName("rol")
+                .HasConversion<int>()
+                .HasDefaultValue(RolUsuario.Comprador)
                 .IsRequired();
 
             builder.Property(x => x.FechaRegistro)

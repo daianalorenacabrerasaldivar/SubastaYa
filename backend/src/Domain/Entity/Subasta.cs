@@ -104,6 +104,19 @@ namespace Domain.Entity
             };
         }
 
+        public bool PuedeActivar(DateTime ahora)
+        {
+            return Estado == EstadoSubasta.PROGRAMADA && FechaInicio <= ahora;
+        }
+
+        public void Activar()
+        {
+            if (Estado != EstadoSubasta.PROGRAMADA)
+                throw new InvalidOperationException("Solo una subasta PROGRAMADA puede activarse.");
+
+            Estado = EstadoSubasta.ACTIVA;
+        }
+
         public bool PuedeFinalizar(DateTime ahora)
         {
             return Estado == EstadoSubasta.ACTIVA && FechaFin <= ahora && Pujas.Count > 0;

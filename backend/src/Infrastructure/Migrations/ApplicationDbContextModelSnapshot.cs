@@ -328,6 +328,12 @@ namespace Infrastructure.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("password_hash");
 
+                    b.Property<int>("Rol")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("rol");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")

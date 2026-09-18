@@ -1,10 +1,11 @@
 using Application.Interfaces.Persistencia;
+using Application.Interfaces.Persistencia.Lectura;
 using Domain.Common.ResultPattern;
 using MediatR;
 
 namespace Application.UseCases.Billetera.Query.ConsultarSaldo
 {
-    public sealed class GetWalletBalanceHandler : IRequestHandler<GetWalletBalanceQuery, Result<GetWalletBalanceResponse>>
+    public sealed class GetWalletBalanceHandler : IRequestHandler<GetWalletBalanceQuery, Result<WalletBalanceResult>>
     {
         private readonly IBilleteraQueryRepository _billeteraRepository;
 
@@ -13,22 +14,16 @@ namespace Application.UseCases.Billetera.Query.ConsultarSaldo
             _billeteraRepository = billeteraRepository;
         }
 
-        public async Task<Result<GetWalletBalanceResponse>> Handle(GetWalletBalanceQuery request, CancellationToken cancellationToken)
+        public async Task<Result<WalletBalanceResult>> Handle(GetWalletBalanceQuery request, CancellationToken cancellationToken)
         {
-            var billetera = await _billeteraRepository.GetByUsuarioIdAsync(request.UsuarioId, cancellationToken);
+            var balance = await _billeteraRepository.GetBalanceByUsuarioIdAsync(request.UsuarioId, cancellationToken);
 
-            if (billetera is null)
-            {
-                return new Failed<GetWalletBalanceResponse>(
+            if (balance is null)
+                return new Failed<WalletBalanceResult>(
                     $"No existe una billetera para el usuario con Id {request.UsuarioId}.",
                     DataStatus.NotFound);
-            }
 
-            return new Success<GetWalletBalanceResponse>(new GetWalletBalanceResponse(
-                billetera.UsuarioId,
-                billetera.SaldoTotal,
-                billetera.SaldoRetenido,
-                billetera.SaldoDisponible));
+            return new Success<WalletBalanceResult>(balance);
         }
     }
 }

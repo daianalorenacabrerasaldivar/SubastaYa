@@ -21,8 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubastaYa.Infrastructure.IntegrationTests", "tests\Infrastructure\SubastaYa.Infrastructure.IntegrationTests\SubastaYa.Infrastructure.IntegrationTests.csproj", "{F75D3350-B7D7-46EF-AFBE-FA9983812415}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{B611CC27-D592-8FDF-F9F1-D39D131BCC02}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubastaYa.Application.UnitTests", "tests\Application\SubastaYa.Application.UnitTests\SubastaYa.Application.UnitTests.csproj", "{7803562D-49BF-4BAD-94E0-519558EDFF80}"
