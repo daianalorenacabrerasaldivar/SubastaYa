@@ -89,6 +89,7 @@ Content-Type: application/json
   "usuarioId": 2,
   "nombre": "Comprador Uno",
   "email": "comprador1@test.com",
+  "rol": "Comprador",
   "token": "eyJhbGci...",
   "expiraEn": "2026-09-17T..."
 }
@@ -102,12 +103,12 @@ Authorization: Bearer eyJhbGci...
 
 ### Usuarios del seed
 
-| Email | Rol | Saldo inicial |
-|---|---|---|
-| `vendedor@test.com` | Vendedor | $7.500 (cobro bicicleta) |
-| `comprador1@test.com` | Comprador | $150.000 ($45.000 retenidos) |
-| `comprador2@test.com` | Comprador | $192.500 |
-| `sinfondos@test.com` | Comprador | $500 |
+| Email | Rol | Total | Retenido | Disponible |
+|---|---|---|---|---|
+| `vendedor@test.com` | Vendedor | $0 | $0 | $0 |
+| `comprador1@test.com` | Comprador | $150.000 | $45.000 | $105.000 |
+| `comprador2@test.com` | Comprador | $200.000 | $0 | $200.000 |
+| `sinfondos@test.com` | Comprador | $500 | $0 | $500 |
 
 ---
 
